@@ -227,12 +227,12 @@ pub fn open_config() {
 
 pub fn about(){
 	title := 'Enhance any lexer for Notepad++'
-	text := '\tEnhanceAnyLexer v. 0.0.1 (64bit)
+	text := '\tEnhanceAnyLexer v0.0.1
 
 \tAuthor: Ekopalypse
 
 \tCode: https://github.com/Ekopalypse/EnhanceAnyLexer
-\tLicensed under GPLv2
+\tLicensed under MIT
 '
 	C.MessageBoxW(npp_data.npp_handle, text.to_wide(), title.to_wide(), 0)
 }

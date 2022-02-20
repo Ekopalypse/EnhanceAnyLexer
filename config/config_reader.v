@@ -66,6 +66,12 @@ pub fn read(config_file string) {
 				debug_mode_ := debug_mode[1].trim(' ')
 				plugin.debug_mode = debug_mode_.int() == 1
 			}
+		} 
+		else if line_.starts_with('offset') {
+			offset := line_.split('=')
+			if offset.len == 2 {
+				plugin.offset = offset[1].trim(' ').int()
+			}
 		} else {
 			if line_.starts_with('excluded_styles') {
 				excludes := line_.split('=')

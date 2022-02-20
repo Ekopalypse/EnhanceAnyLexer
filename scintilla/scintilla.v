@@ -66,14 +66,21 @@ fn (e Editor) call(hwnd voidptr, msg int, wparam usize, lparam isize) isize{
 	}
 }
 
-pub fn (e Editor) get_visible_area_positions(hwnd voidptr) (isize, isize) {
-	mut first_line := e.call(hwnd, sci_getfirstvisibleline, usize(0), isize(0))
-	first_line = e.call(hwnd, sci_doclinefromvisible, usize(first_line), isize(0))
-	start_pos := e.call(hwnd, sci_positionfromline, usize(first_line), isize(0))
+pub fn (e Editor) get_visible_area_positions(hwnd voidptr, offset isize) (isize, isize) {
 
-	lines_on_screen := e.call(hwnd, sci_linesonscreen, usize(0), isize(0))
-	last_line := e.call(hwnd, sci_doclinefromvisible, usize(first_line+lines_on_screen), isize(0))
-	end_pos := e.call(hwnd, sci_getlineendposition, usize(last_line), isize(0))
+	mut first_visible_line := e.call(hwnd, sci_getfirstvisibleline, 0, 0)
+	first_visible_line = e.call(hwnd, sci_doclinefromvisible, usize(first_visible_line), 0)
+	lines_on_screen := e.call(hwnd, sci_linesonscreen, usize(0), 0)
+	mut last_visible_line := e.call(hwnd, sci_doclinefromvisible, usize(first_visible_line+lines_on_screen), 0)
+	
+	if offset > 0 {
+		first_visible_line = if first_visible_line < offset { 0 } else { first_visible_line - offset }
+		line_count := e.call(hwnd, sci_getlinecount, 0, 0) 
+		last_visible_line = if last_visible_line + offset > line_count { line_count } else { last_visible_line + offset }
+	}
+		
+	start_pos := e.call(hwnd, sci_positionfromline, usize(first_visible_line), 0)
+	end_pos := e.call(hwnd, sci_getlineendposition, usize(last_visible_line), 0)
 
 	return start_pos, end_pos
 }

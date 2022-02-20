@@ -35,7 +35,7 @@ fn (mut p Plugin) check_lexer(buffer_id usize) {
 
 fn (mut p Plugin) style(hwnd voidptr) {
 	p.logger('style')
-	start_pos, end_pos := editor.get_visible_area_positions(hwnd)
+	start_pos, end_pos := editor.get_visible_area_positions(hwnd, isize(p.offset))
 	if start_pos == end_pos || end_pos < start_pos { return }
 	p.logger('\t $start_pos, $end_pos')
 	editor.clear_visible_area(hwnd, p.indicator_id, usize(start_pos), end_pos-start_pos)

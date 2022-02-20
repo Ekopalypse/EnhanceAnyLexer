@@ -57,6 +57,8 @@ endif
 
 ## Release History
 
+* 0.0.2
+    * Offset possibility added
 * 0.0.1
     * First alpha release
 

@@ -47,6 +47,7 @@ pub mut:
 	lexers_to_enhance config.Config
 	indicator_id int
 	debug_mode bool
+	offset int
 	debug_file string
 	already_styled bool
 }
@@ -198,6 +199,10 @@ fn initialize() {
 [global]
 indicator_id=0
 debug_mode=0
+; If specifying an offset, it will affect both the start and end lines.
+; For example, if the currently visible lines range from 100 to 150 and an offset=10 is given,
+; the regular expressions are matched with the text from lines 90 to 160.
+; offset=10
 
 ; Each configured lexer must have a section with its name,
 ; followed by one or more lines with the syntax of 
@@ -227,7 +232,7 @@ pub fn open_config() {
 
 pub fn about(){
 	title := 'Enhance any lexer for Notepad++'
-	text := '\tEnhanceAnyLexer v0.0.1
+	text := '\tEnhanceAnyLexer v0.0.2
 
 \tAuthor: Ekopalypse
 

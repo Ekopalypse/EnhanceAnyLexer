@@ -1,1 +1,2 @@
 *.v linguist-language=V
+*.mod linguist-language=V

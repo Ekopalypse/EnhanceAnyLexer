@@ -4,11 +4,12 @@ Notepad++ plugin that adds an additional foreground colouring option to existing
 ## Installation
 
 - Download and unpack the EnhanceAnyLexer zip-archive (the EnhanceAnyLexer*86 or 64*.zip) from https://github.com/Ekopalypse/EnhanceAnyLexer/releases to the folder "Notepad++\plugins".
-- Configure it by calling "Open configuration file" from the EnhanceAnyLexer plugin menu. (You will find a more detailed description in the configuration file.)
 
 ## Usage example
 
 - Start Notepad++
+- Configure additional coloring by calling "Open configuration file" from the EnhanceAnyLexer plugin menu.  
+  (You will find a more detailed description in the configuration file.)
 - Open a source file
 
 
@@ -56,7 +57,8 @@ endif
 
 
 ## Release History
-
+* 0.1.0
+    * First beta version
 * 0.0.2
     * Offset possibility added
 * 0.0.1

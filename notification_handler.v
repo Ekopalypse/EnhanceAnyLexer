@@ -4,48 +4,37 @@ import config
 
 fn (mut p Plugin) check_lexer(buffer_id usize) {
 	p.logger('check_lexer: ${int(buffer_id)}')
-	lang_name := npp.get_language_name(buffer_id).replace('udf - ', '')
+	lang_name := p.npp.get_language_name(buffer_id).replace('udf - ', '')
 	p.logger('\tnpp.get_language_name returned $lang_name')
-	mut global_regexes := []config.RegexSetting{}
+
 	p.buffer_is_of_interest = false
 	p.lexers_to_enhance.current = config.Lexers{}
+
 	for l in p.lexers_to_enhance.all {
 		if l.name.len > 0 && l.name == lang_name {
 			p.buffer_is_of_interest = true
 			p.lexers_to_enhance.current = l
 			break
-		} else if l.name.len > 0 && l.name == 'global' {
-			if l.regexes.len > 0 {
-				p.logger('\tfound global regexes')
-				p.buffer_is_of_interest = true
-				global_regexes = l.regexes
-			}
 		}
 	}
-	if global_regexes.len > 0 {
-		p.logger('\tadding global regexes')
-		// p.lexers_to_enhance.current.regexes << global_regexes
-	}
-	if p.buffer_is_of_interest {
-		p.logger('${p.lexers_to_enhance.current}')
-	}
+	if p.buffer_is_of_interest { p.logger('${p.lexers_to_enhance.current}') }
 	p.logger('leaving check_lexer, buffer_is_of_interest: $p.buffer_is_of_interest')
 }
 
 
 fn (mut p Plugin) style(hwnd voidptr) {
 	p.logger('style')
-	start_pos, end_pos := editor.get_visible_area_positions(hwnd, isize(p.offset))
+	start_pos, end_pos := p.editor.get_visible_area_positions(hwnd, isize(p.offset))
 	if start_pos == end_pos || end_pos < start_pos { return }
 	p.logger('\t $start_pos, $end_pos')
-	editor.clear_visible_area(hwnd, p.indicator_id, usize(start_pos), end_pos-start_pos)
+	p.editor.clear_visible_area(hwnd, p.indicator_id, usize(start_pos), end_pos-start_pos)
 	current_lang := p.lexers_to_enhance.current
 	p.logger('\tstyle($current_lang, ${p.indicator_id})')
 	for item in current_lang.regexes {
-		editor.scan_visible_area(
+		p.editor.scan_visible_area(
 			hwnd,
-			item, 
-			current_lang.excluded_styles, 
+			item,
+			current_lang.excluded_styles,
 			p.indicator_id,
 			usize(start_pos),
 			usize(end_pos))

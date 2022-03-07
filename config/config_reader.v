@@ -11,13 +11,13 @@ pub fn (rs RegexSetting) str() string {
 	return '[$rs.regex, $rs.color]'
 }
 
-
 pub struct Lexers {
 pub mut:
 	name string
 	regexes []RegexSetting
 	excluded_styles []int
 }
+
 pub fn (l Lexers) str() string {
 	mut regexes_ := ''
 	mut styles_ := ''
@@ -25,7 +25,6 @@ pub fn (l Lexers) str() string {
 	for style in l.excluded_styles { styles_ += '${style.str()} ' }
 	return '[$l.name, $regexes_, $styles_]'
 }
-
 
 pub struct Config {
 pub mut:
@@ -38,39 +37,39 @@ pub fn read(config_file string) {
 	lines := content.split_into_lines()
 	mut lexers := Lexers{}
 	mut setting := RegexSetting{}
-	plugin.lexers_to_enhance = Config{}
-	
+	p.lexers_to_enhance = Config{}
+
 	for line in lines {
 		mut line_ := line.trim(' ')
-		if line_.starts_with(';') || line.len == 0 { 
-			continue 
+		if line_.starts_with(';') || line.len == 0 {
+			continue
 		}
 		else if line_.starts_with('[') {
 			if lexers.name != '' {
-				plugin.lexers_to_enhance.all << lexers
+				p.lexers_to_enhance.all << lexers
 				lexers = Lexers{}
 			}
 			lexers.name = line_.trim("[]").trim(' ').to_lower()
 			setting = RegexSetting{}
-		} 
+		}
 		else if line_.starts_with('indicator_id') {
 			indicator_id := line_.split('=')
 			if indicator_id.len == 2 {
 				indicator_id_ := indicator_id[1].trim(' ')
-				plugin.indicator_id = indicator_id_.int()
+				p.indicator_id = indicator_id_.int()
 			}
 		}
 		else if line_.starts_with('debug_mode') {
 			debug_mode := line_.split('=')
 			if debug_mode.len == 2 {
 				debug_mode_ := debug_mode[1].trim(' ')
-				plugin.debug_mode = debug_mode_.int() == 1
+				p.debug_mode = debug_mode_.int() == 1
 			}
-		} 
+		}
 		else if line_.starts_with('offset') {
 			offset := line_.split('=')
 			if offset.len == 2 {
-				plugin.offset = offset[1].trim(' ').int()
+				p.offset = offset[1].trim(' ').int()
 			}
 		} else {
 			if line_.starts_with('excluded_styles') {
@@ -95,5 +94,5 @@ pub fn read(config_file string) {
 			}
 		}
 	}
-	plugin.lexers_to_enhance.all << lexers
+	p.lexers_to_enhance.all << lexers
 }

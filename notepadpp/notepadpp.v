@@ -23,7 +23,7 @@ pub fn (n Npp) get_current_view() int {
 pub fn(n Npp) get_plugin_config_dir() string {
 	buffer_size := int(n.call(nppm_getpluginsconfigdir, usize(0), isize(0))) + 1
 	mut buffer := alloc_wide(buffer_size)
-	
+
 	n.call(nppm_getpluginsconfigdir, usize(buffer_size), isize(buffer))
 	return unsafe { string_from_wide(buffer) }
 }
@@ -39,7 +39,7 @@ pub fn(n Npp) get_language_name(buffer_id usize) string {
 	lang_type := n.call(nppm_getbufferlangtype, buffer_id, isize(0))
 	mut buffer_size := int(n.call(nppm_getlanguagename, usize(lang_type), isize(0))) + 1
 	mut buffer := alloc_wide(buffer_size)
-	
+
 	n.call(nppm_getlanguagename, usize(lang_type), isize(buffer))
 	lang_name := unsafe { string_from_wide(buffer) }
 	return lang_name.to_lower()
@@ -49,7 +49,7 @@ pub fn(n Npp) get_language_name(buffer_id usize) string {
 pub fn(n Npp) get_buffer_filename(buffer_id usize) string {
 	buffer_size := int(n.call(nppm_getfullpathfrombufferid, buffer_id, isize(0))) + 1
 	mut buffer := alloc_wide(buffer_size)
-	
+
 	n.call(nppm_getfullpathfrombufferid, buffer_id, isize(buffer))
 	return unsafe { string_from_wide(buffer) }
 }

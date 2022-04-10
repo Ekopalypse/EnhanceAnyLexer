@@ -7,35 +7,23 @@ pub mut:
 	color int
 }
 
-pub fn (rs RegexSetting) str() string {
-	return '[$rs.regex, $rs.color]'
-}
-
-pub struct Lexers {
+pub struct Lexer {
 pub mut:
 	name string
 	regexes []RegexSetting
 	excluded_styles []int
 }
 
-pub fn (l Lexers) str() string {
-	mut regexes_ := ''
-	mut styles_ := ''
-	for regex in l.regexes { regexes_ += '${regex.str()} ' }
-	for style in l.excluded_styles { styles_ += '${style.str()} ' }
-	return '[$l.name, $regexes_, $styles_]'
-}
-
 pub struct Config {
 pub mut:
-	all []Lexers
-	current Lexers
+	all []Lexer
+	current Lexer
 }
 
 pub fn read(config_file string) {
 	content := os.read_file(config_file) or { return }
 	lines := content.split_into_lines()
-	mut lexers := Lexers{}
+	mut lexer := Lexer{}
 	mut setting := RegexSetting{}
 	p.lexers_to_enhance = Config{}
 
@@ -45,11 +33,11 @@ pub fn read(config_file string) {
 			continue
 		}
 		else if line_.starts_with('[') {
-			if lexers.name != '' {
-				p.lexers_to_enhance.all << lexers
-				lexers = Lexers{}
+			if lexer.name != '' {
+				p.lexers_to_enhance.all << lexer
+				lexer = Lexer{}
 			}
-			lexers.name = line_.trim("[]").trim(' ').to_lower()
+			lexer.name = line_.trim("[]").trim(' ').to_lower()
 			setting = RegexSetting{}
 		}
 		else if line_.starts_with('indicator_id') {
@@ -78,7 +66,7 @@ pub fn read(config_file string) {
 					ids := excludes[1].split(',')
 					for id in ids {
 						trimmed_id := id.trim(' ')
-						lexers.excluded_styles << trimmed_id.int()
+						lexer.excluded_styles << trimmed_id.int()
 					}
 				}
 			} else {
@@ -88,11 +76,11 @@ pub fn read(config_file string) {
 					regex := line_[split_pos..].trim_left('=')
 					if regex.len > 0 {
 						setting.regex = regex.trim(' ')
-						lexers.regexes << setting
+						lexer.regexes << setting
 					}
 				}
 			}
 		}
 	}
-	p.lexers_to_enhance.all << lexers
+	p.lexers_to_enhance.all << lexer
 }

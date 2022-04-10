@@ -50,6 +50,7 @@ pub mut:
 }
 
 pub struct Editor {
+	config_regex string = r'^(0x)*[0-9A-fa-f]+\b'
 pub:
 	main_func SCI_FN_DIRECT
 	main_hwnd voidptr
@@ -96,9 +97,9 @@ pub fn (e Editor) scan_visible_area(
 		indicator_id int,
 		start_pos usize,
 		end_pos usize) {
-	p.logger('scan_visible_area: start_pos=$start_pos end_pos=$end_pos')
+	if p.debug_mode { p.logger('scan_visible_area: start_pos=$start_pos end_pos=$end_pos') }
 	if item.regex.len == 0 { return }
-	p.logger('scan_visible_area: ${item.regex}')
+	if p.debug_mode { p.logger('\t${item.regex}') }
 
 	e.call(hwnd, sci_setsearchflags, usize(scfind_regexp | scfind_posix), isize(0))
 	e.call(hwnd, sci_settargetstart, usize(start_pos), isize(0))
@@ -106,7 +107,7 @@ pub fn (e Editor) scan_visible_area(
 
 	mut found_pos := i64(e.call(hwnd, sci_searchintarget, usize(item.regex.len), isize(item.regex.str)))
 	for found_pos > i64(-1) {
-		p.logger('	found at: ${found_pos}')
+		if p.debug_mode { p.logger('\tfound at: ${found_pos}') }
 		end:= i64(e.call(hwnd, sci_gettargetend, usize(0), isize(0)))
 		current_style := int(e.call(hwnd, sci_getstyleat, usize(found_pos), isize(0)))
 
@@ -125,4 +126,38 @@ pub fn (e Editor) scan_visible_area(
 pub fn (e Editor) init_indicator(hwnd voidptr, id usize) {
 	e.call(hwnd, sci_indicsetstyle, id, isize(indic_textfore))
 	e.call(hwnd, sci_indicsetflags, id, isize(sc_indicflag_valuefore))
+}
+
+pub fn (e Editor) style_config(hwnd voidptr, indicator_id int) {
+	if p.debug_mode { p.logger('style_config') }
+	mut first_visible_line := e.call(hwnd, sci_getfirstvisibleline, 0, 0)
+	first_visible_line = e.call(hwnd, sci_doclinefromvisible, usize(first_visible_line), 0)
+	lines_on_screen := e.call(hwnd, sci_linesonscreen, usize(0), 0)
+	mut last_visible_line := e.call(hwnd, sci_doclinefromvisible, usize(first_visible_line+lines_on_screen), 0)
+
+	start_pos := e.call(hwnd, sci_positionfromline, usize(first_visible_line), 0)
+	end_pos := e.call(hwnd, sci_getlineendposition, usize(last_visible_line), 0)
+	e.call(hwnd, sci_setsearchflags, usize(scfind_regexp | scfind_posix), isize(0))
+	e.call(hwnd, sci_settargetstart, usize(start_pos), isize(0))
+	e.call(hwnd, sci_settargetend, usize(end_pos), isize(0))
+
+	mut found_pos := i64(e.call(hwnd, sci_searchintarget, usize(e.config_regex.len), isize(e.config_regex.str)))
+	for found_pos > i64(-1) {
+		if p.debug_mode { p.logger('\tfound at: ${found_pos}') }
+		end:= i64(e.call(hwnd, sci_gettargetend, usize(0), isize(0)))
+		length := end-found_pos
+		// get the color text
+		range_pointer := charptr(e.call(hwnd, sci_getrangepointer, usize(found_pos), isize(length)))
+		color_text := unsafe { range_pointer.vstring_with_len(int(length)) }
+		color := color_text.int()
+		
+		e.call(hwnd, sci_setindicatorcurrent, usize(indicator_id), isize(0))
+		e.call(hwnd, sci_setindicatorvalue, usize(color | sc_indicvaluebit), isize(0))
+		e.call(hwnd, sci_indicatorfillrange, usize(found_pos), isize(length))
+
+		e.call(hwnd, sci_settargetstart, usize(end), isize(0))
+		e.call(hwnd, sci_settargetend, usize(end_pos), isize(0))
+		found_pos = i64(e.call(hwnd, sci_searchintarget, usize(e.config_regex.len), isize(e.config_regex.str)))
+	}
+	if p.debug_mode { p.logger('leaving style_config') }
 }

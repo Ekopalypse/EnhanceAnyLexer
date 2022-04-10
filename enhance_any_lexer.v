@@ -41,9 +41,10 @@ pub mut:
 	npp_data NppData
 	npp notepadpp.Npp
 	func_items []FuncItem
-	current_scintilla_hwnd voidptr
+	active_scintilla_hwnd voidptr
 	config_file string
 	buffer_is_of_interest bool
+	buffer_is_config_file bool
 	lexers_to_enhance config.Config
 	indicator_id int
 	debug_mode bool
@@ -54,17 +55,15 @@ pub mut:
 
 
 pub fn (mut p Plugin) logger(text string) {
-	if p.debug_mode {
-		mut f := os.open_append(p.debug_file) or {
-			p.debug_mode = false
-			title := 'ERROR'
-			message := 'Unable to open debug log file: $p.debug_file\nDebug mode has been disabled!\n\n$text'
-			C.MessageBoxW(p.npp_data.npp_handle, message.to_wide(), title.to_wide(), 0)
-			return
-		}
-		f.writeln('[${time.now().format_ss_milli()}] $text') or { return }
-		f.close()
+	mut f := os.open_append(p.debug_file) or {
+		p.debug_mode = false
+		title := 'ERROR'
+		message := 'Unable to open debug log file: $p.debug_file\nDebug mode has been disabled!\n\n$text'
+		C.MessageBoxW(p.npp_data.npp_handle, message.to_wide(), title.to_wide(), 0)
+		return
 	}
+	defer { f.close() }
+	f.writeln('[${time.now().format_ss_milli()}] $text') or { return }
 }
 
 
@@ -115,6 +114,11 @@ fn be_notified(notification &sci.SCNotification) {
 			}
 		}
 		notepadpp.nppn_bufferactivated {
+			if p.npp.get_current_view() == 0 {		
+				p.active_scintilla_hwnd = p.editor.main_hwnd
+			} else {
+				p.active_scintilla_hwnd = p.editor.other_hwnd
+			}
 			p.on_buffer_activated(notification.nmhdr.id_from)
 		}
 		notepadpp.nppn_langchanged {
@@ -237,7 +241,7 @@ pub fn open_config() {
 
 pub fn about(){
 	title := 'Enhance any lexer for Notepad++'
-	text := '\tEnhanceAnyLexer v0.1.0
+	text := '\tEnhanceAnyLexer v0.2.0
 
 \tAuthor: Ekopalypse
 

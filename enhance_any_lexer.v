@@ -226,8 +226,14 @@ offset=0
 
 ; For example:
 ;[python]
+; # cls and self keywords
 ;1077960 = \\b(cls|self)\\b
+; # function parameters
+;0x669ad1 = (?:(?:def)\s\w+)\s*\(\K.+(?=\):)
+; # args and kwargs
+;#c2b656 = (\*|\*\*)(?=\w)
 ;excluded_styles = 1,3,4,6,7,12,16,17,18,19'
+
 		) or { return }
 	} else {
 		config.read(p.config_file)

@@ -74,7 +74,6 @@ pub fn read(config_file string) {
 				if split_pos > 0 {
 					color__ := line_[0..split_pos].trim(' ')
 					setting.color = color__.replace('#', '0x').int()
-					println('setting.color: ${setting.color}')
 					regex := line_[split_pos..].trim_left('=')
 					if regex.len > 0 {
 						setting.regex = regex.trim(' ')

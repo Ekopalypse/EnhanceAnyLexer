@@ -215,9 +215,15 @@ offset=0
 ; Each configured lexer must have a section with its name
 ; followed by one or more lines with the syntax of
 ; color = regular expression
-; A colour is a number in the range 0 - 16777215.
+; A color is a number in the range 0 - 16777215.
 ; The notation is either pure digits or a hex notation starting with 0x or #, 
 ; such as 0xff00ff or #ff00ff.
+; Please note: 
+; * red goes in the lowest byte (0x0000FF)
+; * green goes in the center byte (0x00FF00)
+; * blue goes in the biggest byte (0xFF0000) 
+; * this BGR order might conflict with your expectation of RGB order.
+; * see Microsoft COLORREF documentation https://docs.microsoft.com/en-us/windows/win32/gdi/colorref
 
 ; The optional line of excluded_styles is expected in the form of
 ; excluded_styles = 1,2,3,4,5 ...

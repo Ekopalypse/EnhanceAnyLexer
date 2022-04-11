@@ -50,7 +50,7 @@ pub mut:
 }
 
 pub struct Editor {
-	config_regex string = r'^(0x)*[0-9A-fa-f]+\b'
+	config_regex string = r'^(?:0x|#|\d)[0-9a-fA-F]+\b'
 pub:
 	main_func SCI_FN_DIRECT
 	main_hwnd voidptr
@@ -149,7 +149,7 @@ pub fn (e Editor) style_config(hwnd voidptr, indicator_id int) {
 		// get the color text
 		range_pointer := charptr(e.call(hwnd, sci_getrangepointer, usize(found_pos), isize(length)))
 		color_text := unsafe { range_pointer.vstring_with_len(int(length)) }
-		color := color_text.int()
+		color := color_text.replace('#', '0x').int()
 		
 		e.call(hwnd, sci_setindicatorcurrent, usize(indicator_id), isize(0))
 		e.call(hwnd, sci_setindicatorvalue, usize(color | sc_indicvaluebit), isize(0))

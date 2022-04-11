@@ -205,6 +205,7 @@ fn initialize() {
 indicator_id=0
 ; A debug mode can be configured in case of styling problems. Expected values are 0 (default, disabled) and 1.
 ; This will create a file called EnhanceAnyLexerDebug.log in the plugins\\config\\EnhanceAnyLexer directory.
+; Note that enabling logging has an impact on rendering performance - you WILL notice slowdowns.
 debug_mode=0
 ; If specifying an offset, it will affect both the start and end lines.
 ; For example, if the currently visible lines range from 100 to 150 and an offset=10 is given,
@@ -213,11 +214,16 @@ offset=0
 
 ; Each configured lexer must have a section with its name
 ; followed by one or more lines with the syntax of
-; colour = regular expression
-; A line starting with excluded_styles is optional and, if used, follows the syntax:
+; color = regular expression
+; A colour is a number in the range 0 - 16777215.
+; The notation is either pure digits or a hex notation starting with 0x or #, 
+; such as 0xff00ff or #ff00ff.
+
+; The optional line of excluded_styles is expected in the form of
 ; excluded_styles = 1,2,3,4,5 ...
 ; The numbers refer to the style IDs used by the lexer and
 ; can be taken from the file stylers.xml or USED_THEME_NAME.xml
+
 ; For example:
 ;[python]
 ;1077960 = \\b(cls|self)\\b

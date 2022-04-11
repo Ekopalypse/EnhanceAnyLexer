@@ -58,7 +58,7 @@ endif
 
 ## Release History
 * 0.2.0
-    * Display the color integer in its own color
+    * Display the color string in its own color
 * 0.1.0
     * First beta version
 * 0.0.2

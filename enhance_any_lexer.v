@@ -177,7 +177,8 @@ fn initialize() {
 	plugin_config_dir := os.join_path(p.npp.get_plugin_config_dir(), plugin_name)
 	if ! os.exists(plugin_config_dir) {
 		os.mkdir(plugin_config_dir) or {
-			C.MessageBoxW(p.npp_data.npp_handle, 'Unable to create $plugin_config_dir'.to_wide(), 'ERROR'.to_wide(), 0)
+			err_msg := 'Unable to create ${plugin_config_dir}\n${winapi_lasterr_str()}'
+			C.MessageBoxW(p.npp_data.npp_handle, err_msg.to_wide(), 'ERROR'.to_wide(), 0)
 			return
 		}
 	}
@@ -187,7 +188,8 @@ fn initialize() {
 
 	if ! os.exists(p.config_file) {
 		mut f := os.create(p.config_file) or {
-			C.MessageBoxW(p.npp_data.npp_handle, 'Unable to create ${p.config_file}'.to_wide(), 'ERROR'.to_wide(), 0)
+			err_msg := 'Unable to create ${p.config_file}\n${winapi_lasterr_str()}'
+			C.MessageBoxW(p.npp_data.npp_handle, err_msg.to_wide(), 'ERROR'.to_wide(), 0)
 			return
 		}
 		defer { f.close() }
@@ -212,9 +214,11 @@ debug_mode=0
 ; the regular expressions are matched with the text from lines 90 to 160.
 offset=0
 
-; Each configured lexer must have a section with its name
-; followed by one or more lines with the syntax of
-; color = regular expression
+; Each configured lexer must have a section with its name,
+; which can be seen in the first field of the status bar,
+; (and in the case of a UDL, use only the part after "User defined language file - ")
+; followed by one or more lines with the syntax
+; color = regular expression.
 ; A color is a number in the range 0 - 16777215.
 ; The notation is either pure digits or a hex notation starting with 0x or #, 
 ; such as 0xff00ff or #ff00ff.
@@ -231,6 +235,11 @@ offset=0
 ; can be taken from the file stylers.xml or USED_THEME_NAME.xml
 
 ; For example:
+;
+;[markdown (preinstalled dark mode)]
+;0x669ad1 = (\\w+)
+;excluded_styles = 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,20,21,22,23
+;
 ;[python]
 ; # cls and self keywords
 ;1077960 = \\b(cls|self)\\b
@@ -270,7 +279,7 @@ pub fn about(){
 }
 
 
-[windows_stdcall]
+[callconv: stdcall]
 [export: DllMain]
 fn current(hinst voidptr, fdw_reason int, lp_reserved voidptr) bool{
 	match fdw_reason {

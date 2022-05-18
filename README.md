@@ -57,6 +57,8 @@ endif
 
 
 ## Release History
+* 0.3.0
+    * First official Notepad++ pluginAdmin release
 * 0.2.0
     * Display the color string in its own color
 * 0.1.0

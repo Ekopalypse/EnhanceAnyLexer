@@ -13,7 +13,7 @@ fn (n Npp) call(msg int, wparam usize, lparam isize) isize {
 }
 
 [inline]
-fn alloc_wide(size int) &byte { return vcalloc((size) * 2 ) }
+fn alloc_wide(size int) &u8 { return vcalloc((size) * 2 ) }
 
 pub fn (n Npp) get_current_view() int {
 	return int(n.call(nppm_getcurrentview, usize(0), isize(0)))

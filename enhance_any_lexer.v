@@ -236,18 +236,20 @@ offset=0
 
 ; For example:
 ;
-;[markdown (preinstalled dark mode)]
-;0x669ad1 = (\\w+)
-;excluded_styles = 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,20,21,22,23
-;
-;[python]
-; # cls and self keywords
-;1077960 = \\b(cls|self)\\b
-; # function parameters
-;0x669ad1 = (?:(?:def)\s\w+)\s*\(\K.+(?=\):)
-; # args and kwargs
-;#c2b656 = (\*|\*\*)(?=\w)
-;excluded_styles = 1,3,4,6,7,12,16,17,18,19'
+; [markdown (preinstalled)]
+; ; changes the default color - useless, just to see it works.
+; 0x66ad1 = \\w+
+; excluded_styles = 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,20,21,22,23
+
+; [python]
+; ; function parameters
+; 0x66ad1 = (?:(?:def)\\s\\w+)\\s*\\(\\K.+(?=\\):)
+; ; cls and self keywords
+; 2550 = \\b(cls|self)\\b
+; ; args and kwargs
+; 0xff33ff = (\\*|\\*\\*)\\w+
+; excluded_styles = 1,3,4,6,7,12,16,17,18,19
+'
 
 		) or { return }
 	} else {
@@ -268,7 +270,7 @@ pub fn open_config() {
 
 pub fn about(){
 	title := 'Enhance any lexer for Notepad++'
-	text := '\tEnhanceAnyLexer v0.2.0
+	text := '\tEnhanceAnyLexer v0.3.0
 
 \tAuthor: Ekopalypse
 

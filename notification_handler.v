@@ -10,14 +10,6 @@ fn (mut p Plugin) check_lexer(buffer_id usize) {
 	p.buffer_is_of_interest = lang_name in p.lexers_to_enhance.all
 	p.lexers_to_enhance.current =  p.lexers_to_enhance.all[lang_name]
 
-	
-	// for l in p.lexers_to_enhance.all {
-		// if l.name.len > 0 && l.name == lang_name {
-			// p.buffer_is_of_interest = true
-			// p.lexers_to_enhance.current = l
-			// break
-		// }
-	// }
 	if p.debug_mode { 
 		p.logger('\t${p.lexers_to_enhance.current}')
 		p.logger('leaving check_lexer, buffer_is_of_interest: $p.buffer_is_of_interest') 

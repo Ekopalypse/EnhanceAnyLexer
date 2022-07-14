@@ -215,7 +215,8 @@ debug_mode=0
 ; the regular expressions are matched with the text from lines 90 to 160.
 offset=0
 
-; Each configured lexer must have a section with its name, which can be seen in the language menu,
+; Each configured lexer must have a section with its name,
+; (NOTE: use the menu function "Enhance current language" as it takes care of the correct naming)
 ; followed by one or more lines with the syntax
 ; color = regular expression.
 ; A color is a number in the range 0 - 16777215.
@@ -299,7 +300,7 @@ pub fn open_config() {
 
 pub fn about(){
 	title := 'Enhance any lexer for Notepad++'
-	text := '\tEnhanceAnyLexer v0.3.0
+	text := '\tEnhanceAnyLexer v0.4.0
 
 \tAuthor: Ekopalypse
 

@@ -161,3 +161,31 @@ pub fn (e Editor) style_config(hwnd voidptr, indicator_id int) {
 	}
 	if p.debug_mode { p.logger('leaving style_config') }
 }
+
+pub fn (e Editor) append_text(hwnd voidptr, text string) {
+	e.call(hwnd, sci_appendtext, usize(text.len), isize(text.str))
+}
+
+fn (e Editor) scroll_to_line(hwnd voidptr, line usize) {
+	e.call(hwnd, sci_setvisiblepolicy, usize(caret_jumps | caret_even), 0)
+	e.call(hwnd, sci_ensurevisibleenforcepolicy, line, 0)
+	e.call(hwnd, sci_gotoline, line, 0)	
+}
+
+pub fn (e Editor) goto_last_line(hwnd voidptr) {
+	last_line := usize(e.call(hwnd, sci_getlinecount, 0, 0))
+	e.scroll_to_line(hwnd, last_line)
+}
+
+pub fn (e Editor) goto_known_lexer(hwnd voidptr, search string) {
+	end_pos := e.call(hwnd, sci_getlength, 0, 0)
+	e.call(hwnd, sci_setsearchflags, 0, 0)
+	e.call(hwnd, sci_settargetstart, 0, 0)
+	e.call(hwnd, sci_settargetend, usize(end_pos), 0)
+
+	mut found_pos := e.call(hwnd, sci_searchintarget, usize(search.len), isize(search.str))
+	if found_pos > -1 {
+		line := usize(e.call(hwnd, sci_linefromposition, usize(found_pos), 0))
+		e.scroll_to_line(hwnd, line)
+	}
+}

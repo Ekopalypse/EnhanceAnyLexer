@@ -58,7 +58,7 @@ endif
 
 ## Release History
 * 0.4.0
-    * Add convenience functions to make it easier to create to correct config sections 
+    * Add convenience functions to make it easier to create the correct config sections 
 * 0.3.0
     * First official Notepad++ pluginAdmin release
 * 0.2.0

@@ -12,3 +12,6 @@ EnhanceAnyLexer
 /*.exp
 /build_git_releases.bat
 /releases
+/EnhanceAnyLexer.res
+/enhance_any_lexer.o
+/enhance_any_lexer.res

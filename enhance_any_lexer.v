@@ -152,6 +152,7 @@ fn message_proc(msg u32, wparam usize, lparam isize) isize {
 [export: getFuncsArray]
 fn get_funcs_array(mut nb_func &int) &FuncItem {
 	menu_functions := {
+		'Enhance current language': create_for_current_language
 		'Open configuration file': open_config
 		'About': about
 	}
@@ -214,9 +215,7 @@ debug_mode=0
 ; the regular expressions are matched with the text from lines 90 to 160.
 offset=0
 
-; Each configured lexer must have a section with its name,
-; which can be seen in the first field of the status bar,
-; (and in the case of a UDL, use only the part after "User defined language file - ")
+; Each configured lexer must have a section with its name, which can be seen in the language menu,
 ; followed by one or more lines with the syntax
 ; color = regular expression.
 ; A color is a number in the range 0 - 16777215.
@@ -262,6 +261,36 @@ offset=0
 	p.on_buffer_activated(usize(p.npp.get_current_buffer_id()))
 }
 
+
+pub fn create_for_current_language() {
+	current_language := p.npp.get_current_language()
+	if ! os.exists(p.config_file) {
+		err_msg := 'Cannot find ${p.config_file}'
+		C.MessageBoxW(p.npp_data.npp_handle, err_msg.to_wide(), 'ERROR'.to_wide(), 0)
+		return
+	}
+	mut lexer_already_defined := current_language in p.lexers_to_enhance.all
+
+	open_config()
+	if ! (p.npp.get_current_filename() == p.config_file) {
+		err_msg := 'Unable to open ${p.config_file}'
+		C.MessageBoxW(p.npp_data.npp_handle, err_msg.to_wide(), 'ERROR'.to_wide(), 0)
+		return
+	}
+	if ! lexer_already_defined {
+		tmpl := '
+[${current_language}]
+; color each word
+0x66ad1 = \\w+
+; check in the respective styler xml if the following IDs are valid
+excluded_styles = 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,20,21,22,23
+'
+		p.editor.append_text(p.active_scintilla_hwnd, tmpl)
+		p.editor.goto_last_line(p.active_scintilla_hwnd)
+	} else {
+		p.editor.goto_known_lexer(p.active_scintilla_hwnd, '[${current_language}]')
+	}
+}
 
 pub fn open_config() {
 	if os.exists(p.config_file) { p.npp.open_document(p.config_file) }

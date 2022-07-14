@@ -1,0 +1,34 @@
+#include <windows.h>
+
+VS_VERSION_INFO	VERSIONINFO
+FILEVERSION    	0, 4, 0, 0
+PRODUCTVERSION 	0, 4, 0, 0
+FILEFLAGSMASK  	VS_FFI_FILEFLAGSMASK
+#ifdef _DEBUG
+	FILEFLAGS	VS_FF_DEBUG | VS_FF_PRERELEASE
+#else
+	FILEFLAGS	0
+#endif
+FILEOS			VOS_NT_WINDOWS32
+FILETYPE		VFT_DLL  // VFT_APP
+FILESUBTYPE		VFT2_UNKNOWN
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "040904b0"  // 04b0 == 1200
+    BEGIN
+      VALUE "CompanyName", "Ekopalypse"
+      VALUE "FileDescription", "Enhance any lexer plugin for Notepad++"
+      VALUE "FileVersion", "0.4.0.0"
+      VALUE "InternalName", "EnhanceAnyLexer"
+      VALUE "LegalCopyright", "Copyright (C) 2022 Ekopalypse"
+      VALUE "OriginalFilename", "EnhanceAnyLexer.dll"
+      VALUE "ProductName", "EnhanceAnyLexer"
+      VALUE "ProductVersion", "0.4.0.0"
+    END
+  END
+  BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0x0409, 1200
+  END
+END

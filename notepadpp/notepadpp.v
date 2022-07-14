@@ -42,7 +42,7 @@ pub fn(n Npp) get_language_name(buffer_id usize) string {
 
 	n.call(nppm_getlanguagename, usize(lang_type), isize(buffer))
 	lang_name := unsafe { string_from_wide(buffer) }
-	return lang_name.to_lower()
+	return lang_name.to_lower().replace('udf - ', '')
 }
 
 
@@ -56,4 +56,14 @@ pub fn(n Npp) get_buffer_filename(buffer_id usize) string {
 
 pub fn (n Npp) get_current_buffer_id() isize {
 	return n.call(nppm_getcurrentbufferid, 0, 0)
+}
+
+pub fn (n Npp) get_current_language() string {
+	buffer_id := usize(n.call(nppm_getcurrentbufferid, 0, 0))
+	return n.get_language_name(buffer_id)
+}
+
+pub fn (n Npp) get_current_filename() string {
+	buffer_id := usize(n.call(nppm_getcurrentbufferid, 0, 0))
+	return n.get_buffer_filename(buffer_id)
 }

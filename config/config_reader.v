@@ -16,7 +16,7 @@ pub mut:
 
 pub struct Config {
 pub mut:
-	all []Lexer
+	all map[string]Lexer
 	current Lexer
 }
 
@@ -29,13 +29,14 @@ pub fn read(config_file string) {
 
 	for line in lines {
 		mut line_ := line.trim(' ')
-		if line_.starts_with(';') || line.len == 0 {
+		if line_.starts_with(';') || line.len < 3 {  // the minimum length is something like 5=A
 			continue
 		}
 		else if line_.starts_with('[') {
 			if lexer.name != '' {
-				p.lexers_to_enhance.all << lexer
-				lexer = Lexer{}
+				// p.lexers_to_enhance.all << lexer
+				p.lexers_to_enhance.all[lexer.name] = lexer
+				lexer = Lexer{}  // new lexer, resets everything
 			}
 			lexer.name = line_.trim("[]").trim(' ').to_lower()
 			setting = RegexSetting{}
@@ -69,7 +70,18 @@ pub fn read(config_file string) {
 						lexer.excluded_styles << trimmed_id.int()
 					}
 				}
+			// } else if line_.starts_with('bgr,') {
+				// split_pos := line_.index('=') or { continue }
+				// if split_pos > 0 {
+					// bgr_color := line_[4..split_pos].trim(' ').int()
+					// rgb_color := ((bgr_color & 0xFF0000) >> 16) | (bgr_color & 0x00FF00) | ((bgr_color & 0x0000FF) << 16)
+					// regex := line_[split_pos..].trim_left('=')
+					// setting.color = rgb_color
+					// setting.regex = regex
+					// lexer.regexes << setting
+				// }
 			} else {
+				// the line starts with a color
 				split_pos := line_.index('=') or { continue }
 				if split_pos > 0 {
 					color__ := line_[0..split_pos].trim(' ')
@@ -83,5 +95,8 @@ pub fn read(config_file string) {
 			}
 		}
 	}
-	p.lexers_to_enhance.all << lexer
+	if lexer.name != '' {
+		p.lexers_to_enhance.all[lexer.name] = lexer
+	}
+	// p.lexers_to_enhance.all << lexer
 }

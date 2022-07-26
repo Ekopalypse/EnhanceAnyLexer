@@ -1,7 +1,7 @@
 # EnhanceAnyLexer
 Notepad++ plugin that adds an additional foreground colouring option to existing lexers
 
-***NOTE: An existing EnhanceAnyLexerConfig.ini is obsolete if you use version 0.5.
+***NOTE: An existing EnhanceAnyLexerConfig.ini is obsolete if you use version 0.5.  
 This means that you must either rename the ini and let the plugin create a new one automatically  
 or add the following two lines to the global section yourself.***
 ~~~

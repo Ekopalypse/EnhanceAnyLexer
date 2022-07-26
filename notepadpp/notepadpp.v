@@ -1,10 +1,13 @@
 module notepadpp
 
 fn C.SendMessageW(hwnd voidptr, msg u32, wparam usize, lparam isize) isize
+fn C.FindWindowExW(hWndParent voidptr, hWndChildAfter voidptr, lpszClass &u16, lpszWindow &u16) voidptr
+fn C.IsWindowVisible(hWnd voidptr) bool
 
 pub struct Npp {
 mut:
 	hwnd voidptr
+	splitter_hwnd voidptr
 }
 
 [inline]
@@ -14,6 +17,15 @@ fn (n Npp) call(msg int, wparam usize, lparam isize) isize {
 
 [inline]
 fn alloc_wide(size int) &u8 { return vcalloc((size) * 2 ) }
+
+pub fn (mut n Npp) init() {
+	n.splitter_hwnd = C.FindWindowExW(
+		n.hwnd,
+		voidptr(0),
+		"splitterContainer".to_wide(), 
+		voidptr(0)
+	)
+}
 
 pub fn (n Npp) get_current_view() int {
 	return int(n.call(nppm_getcurrentview, usize(0), isize(0)))
@@ -66,4 +78,16 @@ pub fn (n Npp) get_current_language() string {
 pub fn (n Npp) get_current_filename() string {
 	buffer_id := usize(n.call(nppm_getcurrentbufferid, 0, 0))
 	return n.get_buffer_filename(buffer_id)
+}
+
+pub fn (n Npp) is_single_view() bool {
+	return ! C.IsWindowVisible(n.splitter_hwnd)
+}
+
+pub fn (n Npp) move_to_other_view() {
+	n.call(nppm_menucommand, 0, 10001)
+}
+
+pub fn (n Npp) get_notepad_version() usize {
+	return usize(n.call(nppm_getnppversion, 0, 0))
 }

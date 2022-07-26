@@ -1,6 +1,13 @@
 # EnhanceAnyLexer
 Notepad++ plugin that adds an additional foreground colouring option to existing lexers
 
+***NOTE: An existing EnhanceAnyLexerConfig.ini is obsolete if you use version 0.5.  
+This means that you must either rename the ini and let the plugin create a new one automatically  
+or add the following two lines to the global section yourself.
+*regex_error_style_id=30  
+*regex_error_color=0x756ce0  
+Of course, these values are configurable.  
+
 ## Installation
 
 - Download and unpack the EnhanceAnyLexer zip-archive (the EnhanceAnyLexer*86 or 64*.zip) from https://github.com/Ekopalypse/EnhanceAnyLexer/releases to the folder "Notepad++\plugins".
@@ -8,8 +15,8 @@ Notepad++ plugin that adds an additional foreground colouring option to existing
 ## Usage example
 
 - Start Notepad++
-- Configure additional coloring by calling "Open configuration file" from the EnhanceAnyLexer plugin menu.  
-  (You will find a more detailed description in the configuration file.)
+- Configure additional coloring by calling "Enhance current language" from the EnhanceAnyLexer plugin menu.  
+  (You will find a more detailed description in the configuration file.)  
 - Open a source file
 
 
@@ -57,6 +64,8 @@ endif
 
 
 ## Release History
+* 0.5.0
+    * Add a poor man regex linter functionality
 * 0.4.0
     * Add convenience functions to make it easier to create the correct config sections 
 * 0.3.0

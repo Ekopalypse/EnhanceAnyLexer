@@ -47,17 +47,22 @@ pub fn read(config_file string) {
 				p.indicator_id = indicator_id_.int()
 			}
 		}
-		else if line_.starts_with('debug_mode') {
-			debug_mode := line_.split('=')
-			if debug_mode.len == 2 {
-				debug_mode_ := debug_mode[1].trim(' ')
-				p.debug_mode = debug_mode_.int() == 1
-			}
-		}
 		else if line_.starts_with('offset') {
 			offset := line_.split('=')
 			if offset.len == 2 {
 				p.offset = offset[1].trim(' ').int()
+			}
+		} 
+		else if line_.starts_with('regex_error_style_id') {
+			regex_error_style_id := line_.split('=')
+			if regex_error_style_id.len == 2 {
+				p.regex_error_style_id = regex_error_style_id[1].trim(' ').int()
+			}
+		}
+		else if line_.starts_with('regex_error_color') {
+			regex_error_color := line_.split('=')
+			if regex_error_color.len == 2 {
+				p.regex_error_color = regex_error_color[1].trim(' ').int()
 			}
 		} else {
 			if line_.starts_with('excluded_styles') {
@@ -75,9 +80,9 @@ pub fn read(config_file string) {
 				if split_pos > 0 {
 					color__ := line_[0..split_pos].trim(' ')
 					setting.color = color__.replace('#', '0x').int()
-					regex := line_[split_pos..].trim_left('=')
+					regex := line_[split_pos..].trim_left('=').trim(' ')
 					if regex.len > 0 {
-						setting.regex = regex.trim(' ')
+						setting.regex = regex
 						lexer.regexes << setting
 					}
 				}

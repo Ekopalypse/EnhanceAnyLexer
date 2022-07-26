@@ -1,7 +1,6 @@
 module npp_plugin
 
 import os
-import time
 import notepadpp
 import scintilla as sci
 import config
@@ -14,7 +13,6 @@ fn C.MessageBoxW(voidptr, &u16, &u16, u32)
 const (
 	plugin_name = 'EnhanceAnyLexer'
 	config_file = 'EnhanceAnyLexerConfig.ini'
-	debug_file = 'EnhanceAnyLexerDebug.log'
 )
 
 __global ( p Plugin )
@@ -47,23 +45,11 @@ pub mut:
 	buffer_is_config_file bool
 	lexers_to_enhance config.Config
 	indicator_id int
-	debug_mode bool
 	offset int
-	debug_file string
 	already_styled bool
-}
-
-
-pub fn (mut p Plugin) logger(text string) {
-	mut f := os.open_append(p.debug_file) or {
-		p.debug_mode = false
-		title := 'ERROR'
-		message := 'Unable to open debug log file: $p.debug_file\nDebug mode has been disabled!\n\n$text'
-		C.MessageBoxW(p.npp_data.npp_handle, message.to_wide(), title.to_wide(), 0)
-		return
-	}
-	defer { f.close() }
-	f.writeln('[${time.now().format_ss_milli()}] $text') or { return }
+	npp_version usize
+	regex_error_style_id int = 30
+	regex_error_color int = 0x756ce0
 }
 
 
@@ -82,12 +68,13 @@ fn get_name() &u16 {
 [export: setInfo]
 fn set_info(nppData NppData) {
 	p.npp_data = nppData
-	e1_func := sci.SCI_FN_DIRECT(C.SendMessageW(p.npp_data.scintilla_main_handle, 2184, 0, 0))
-	e1_hwnd := C.SendMessageW(p.npp_data.scintilla_main_handle, 2185, 0, 0)
-	e2_func := sci.SCI_FN_DIRECT(C.SendMessageW(p.npp_data.scintilla_second_handle, 2184, 0, 0))
-	e2_hwnd := C.SendMessageW(p.npp_data.scintilla_second_handle, 2185, 0, 0)
+	e1_func := sci.SCI_FN_DIRECT(C.SendMessageW(p.npp_data.scintilla_main_handle, sci.sci_getdirectfunction, 0, 0))
+	e1_hwnd := C.SendMessageW(p.npp_data.scintilla_main_handle, sci.sci_getdirectpointer, 0, 0)
+	e2_func := sci.SCI_FN_DIRECT(C.SendMessageW(p.npp_data.scintilla_second_handle, sci.sci_getdirectfunction, 0, 0))
+	e2_hwnd := C.SendMessageW(p.npp_data.scintilla_second_handle, sci.sci_getdirectpointer, 0, 0)
 
-	p.npp = notepadpp.Npp{p.npp_data.npp_handle}
+	p.npp = notepadpp.Npp{hwnd: p.npp_data.npp_handle}
+	p.npp.init()
 
 	p.editor = sci.Editor {
 		main_func: e1_func
@@ -106,7 +93,17 @@ fn be_notified(notification &sci.SCNotification) {
 
 	match notification.nmhdr.code {
 		notepadpp.nppn_ready {
-			initialize()
+			p.npp_version = p.npp.get_notepad_version()
+			plugin_config_dir := os.join_path(p.npp.get_plugin_config_dir(), plugin_name)
+			if ! os.exists(plugin_config_dir) {
+				os.mkdir(plugin_config_dir) or {
+					err_msg := 'Unable to create ${plugin_config_dir}\n${winapi_lasterr_str()}'
+					C.MessageBoxW(p.npp_data.npp_handle, err_msg.to_wide(), 'ERROR'.to_wide(), 0)
+					return
+				}
+			}
+			p.config_file = os.join_path(plugin_config_dir, config_file)
+			p.initialize()
 		}
 		notepadpp.nppn_filesaved {
 			if p.npp.get_buffer_filename(notification.nmhdr.id_from) == p.config_file {
@@ -131,6 +128,12 @@ fn be_notified(notification &sci.SCNotification) {
 				p.on_update_ui(p.editor.other_hwnd)
 			}
 		}
+		sci.scn_modified {
+			mod_type := notification.modification_type & (sci.sc_mod_inserttext | sci.sc_mod_deletetext)
+			if mod_type > 0 {
+				p.on_modified(notification.position)
+			}
+		}
 		sci.scn_marginclick {
 			if notification.nmhdr.hwnd_from == p.npp_data.scintilla_main_handle {
 				p.on_margin_clicked(p.editor.main_hwnd)
@@ -153,7 +156,6 @@ fn message_proc(msg u32, wparam usize, lparam isize) isize {
 fn get_funcs_array(mut nb_func &int) &FuncItem {
 	menu_functions := {
 		'Enhance current language': create_for_current_language
-		'Open configuration file': open_config
 		'About': about
 	}
 	for k, v in menu_functions {
@@ -172,96 +174,6 @@ fn get_funcs_array(mut nb_func &int) &FuncItem {
 	unsafe { *nb_func = p.func_items.len }
 	return p.func_items.data
 }
-
-
-fn initialize() {
-	plugin_config_dir := os.join_path(p.npp.get_plugin_config_dir(), plugin_name)
-	if ! os.exists(plugin_config_dir) {
-		os.mkdir(plugin_config_dir) or {
-			err_msg := 'Unable to create ${plugin_config_dir}\n${winapi_lasterr_str()}'
-			C.MessageBoxW(p.npp_data.npp_handle, err_msg.to_wide(), 'ERROR'.to_wide(), 0)
-			return
-		}
-	}
-
-	p.debug_file = os.join_path(plugin_config_dir, debug_file)
-	p.config_file = os.join_path(plugin_config_dir, config_file)
-
-	if ! os.exists(p.config_file) {
-		mut f := os.create(p.config_file) or {
-			err_msg := 'Unable to create ${p.config_file}\n${winapi_lasterr_str()}'
-			C.MessageBoxW(p.npp_data.npp_handle, err_msg.to_wide(), 'ERROR'.to_wide(), 0)
-			return
-		}
-		defer { f.close() }
-		f.write_string('
-; The configuration is stored in an ini-like syntax.
-; The global section defines the indicator ID used for styling and whether logging(debug_mode) is enabled.
-; A line starting with a semicolon is treated as a comment line, NO inline comment is supported.
-; ONLY styling of the text foreground color is supported.
-; Updates to the configuration are read when the file is saved and applied immediately
-; when the buffer of the configured lexer is reactivated.
-[global]
-; The ID of the indicator used to style the matches.
-; If there are conflicts with indicators used by Npp or other plugins, change this value.
-; The expected range is between 0 and 35; according to Scinitilla.
-indicator_id=0
-; A debug mode can be configured in case of styling problems. Expected values are 0 (default, disabled) and 1.
-; This will create a file called EnhanceAnyLexerDebug.log in the plugins\\config\\EnhanceAnyLexer directory.
-; Note that enabling logging has an impact on rendering performance - you WILL notice slowdowns.
-debug_mode=0
-; If specifying an offset, it will affect both the start and end lines.
-; For example, if the currently visible lines range from 100 to 150 and an offset=10 is given,
-; the regular expressions are matched with the text from lines 90 to 160.
-offset=0
-
-; Each configured lexer must have a section with its name,
-; (NOTE: use the menu function "Enhance current language" as it takes care of the correct naming)
-; followed by one or more lines with the syntax
-; color = regular expression.
-; A color is a number in the range 0 - 16777215.
-; The notation is either pure digits or a hex notation starting with 0x or #, 
-; such as 0xff00ff or #ff00ff.
-; Please note: 
-; * red goes in the lowest byte (0x0000FF)
-; * green goes in the center byte (0x00FF00)
-; * blue goes in the biggest byte (0xFF0000) 
-; * this BGR order might conflict with your expectation of RGB order.
-; * see Microsoft COLORREF documentation https://docs.microsoft.com/en-us/windows/win32/gdi/colorref
-
-; The optional line of excluded_styles is expected in the form of
-; excluded_styles = 1,2,3,4,5 ...
-; The numbers refer to the style IDs used by the lexer and
-; can be taken from the file stylers.xml or USED_THEME_NAME.xml
-
-; For example:
-;
-; [markdown (preinstalled)]
-; ; changes the default color - useless, just to see it works.
-; 0x66ad1 = \\w+
-; excluded_styles = 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,20,21,22,23
-
-; [python]
-; ; function parameters
-; 0x66ad1 = (?:(?:def)\\s\\w+)\\s*\\(\\K.+(?=\\):)
-; ; cls and self keywords
-; 2550 = \\b(cls|self)\\b
-; ; args and kwargs
-; 0xff33ff = (\\*|\\*\\*)\\w+
-; excluded_styles = 1,3,4,6,7,12,16,17,18,19
-'
-
-		) or { return }
-	} else {
-		config.read(p.config_file)
-	}
-	p.editor.init_indicator(p.editor.main_hwnd, usize(p.indicator_id))
-	p.editor.init_indicator(p.editor.other_hwnd, usize(p.indicator_id))
-
-	// create and send a fake nppn_bufferactivated event to the plugin
-	p.on_buffer_activated(usize(p.npp.get_current_buffer_id()))
-}
-
 
 pub fn create_for_current_language() {
 	current_language := p.npp.get_current_language()
@@ -294,7 +206,12 @@ excluded_styles = 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,20,21,22,23
 }
 
 pub fn open_config() {
-	if os.exists(p.config_file) { p.npp.open_document(p.config_file) }
+	if os.exists(p.config_file) { 
+		p.npp.open_document(p.config_file) 
+		if p.npp.is_single_view() {
+			p.npp.move_to_other_view()
+		}
+	}
 }
 
 

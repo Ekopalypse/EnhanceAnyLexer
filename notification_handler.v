@@ -3,19 +3,23 @@ module npp_plugin
 import os
 import config
 
-fn (mut p Plugin) check_lexer(buffer_id usize) {
-	lang_name := p.npp.get_language_name(buffer_id)
+fn (mut p Plugin) check_lexer() {
+	view0_id, view1_id := p.npp.get_active_buffer_ids()
+	lang_name0 := p.npp.get_language_name(usize(view0_id))
+	lang_name1 := p.npp.get_language_name(usize(view1_id))
 
-	p.buffer_is_of_interest = lang_name in p.lexers_to_enhance.all
-	p.lexers_to_enhance.current =  p.lexers_to_enhance.all[lang_name]
+	p.view0_is_of_interest = lang_name0 in p.lexers_to_enhance.all
+	p.view1_is_of_interest = lang_name1 in p.lexers_to_enhance.all
+	p.lexers_to_enhance_view0 =  p.lexers_to_enhance.all[lang_name0]
+	p.lexers_to_enhance_view1 =  p.lexers_to_enhance.all[lang_name1]
 }
 
 
-fn (mut p Plugin) style(hwnd voidptr) {
+fn (mut p Plugin) style(hwnd voidptr, view int) {
 	start_pos, end_pos := p.editor.get_visible_area_positions(hwnd, isize(p.offset))
 	if start_pos == end_pos || end_pos < start_pos { return }
 	p.editor.clear_visible_area(hwnd, p.indicator_id, usize(start_pos), end_pos-start_pos)
-	current_lang := p.lexers_to_enhance.current
+	current_lang := if view == 0 { p.lexers_to_enhance_view0 } else { p.lexers_to_enhance_view1 }
 	for item in current_lang.regexes {
 		p.editor.scan_visible_area(
 			hwnd,
@@ -24,6 +28,51 @@ fn (mut p Plugin) style(hwnd voidptr) {
 			p.indicator_id,
 			usize(start_pos),
 			usize(end_pos))
+	}
+}
+
+pub fn (mut p Plugin) on_config_file_saved() {
+	p.initialize()
+}
+
+pub fn (mut p Plugin) on_buffer_activated(buffer_id usize) {
+	if p.npp.get_buffer_filename(buffer_id) == p.config_file {
+		p.editor.init_style(p.active_scintilla_hwnd)
+		p.buffer_is_config_file = true
+	} else {
+		p.editor.clear_regex_test(p.active_scintilla_hwnd, p.indicator_id)
+		p.buffer_is_config_file = false
+		p.check_lexer()
+	}
+}
+
+pub fn (mut p Plugin) on_language_changed(buffer_id usize) {
+	p.check_lexer()
+}
+
+fn (mut p Plugin) on_update(sci_hwnd voidptr) {
+	mut hwnd := p.editor.main_hwnd
+	mut buffer_is_of_interest := false
+	mut view := 0
+	if sci_hwnd == p.npp_data.scintilla_main_handle { 
+		buffer_is_of_interest = p.view0_is_of_interest
+	} else {
+		hwnd = p.editor.other_hwnd
+		buffer_is_of_interest = p.view1_is_of_interest
+		view = 1
+	}
+	
+	match true {
+		// keep config file check first since buffer_is_of_interest is true anyway
+		p.buffer_is_config_file { p.editor.style_config(p.active_scintilla_hwnd, p.indicator_id) }
+		buffer_is_of_interest { p.style(hwnd, view) }
+		else{}
+	}
+}
+
+pub fn (mut p Plugin) on_modified(position isize) {
+	if p.buffer_is_config_file && (! p.npp.is_single_view() ) {
+		p.editor.highlight_match(p.active_scintilla_hwnd, position, p.indicator_id)
 	}
 }
 
@@ -106,51 +155,4 @@ regex_error_color=0x756ce0
 
 	// create and send a fake nppn_bufferactivated event to the plugin
 	p.on_buffer_activated(usize(p.npp.get_current_buffer_id()))
-}
-
-pub fn (mut p Plugin) on_config_file_saved() {
-	p.initialize()
-}
-
-pub fn (mut p Plugin) on_buffer_activated(buffer_id usize) {
-	if p.npp.get_buffer_filename(buffer_id) == p.config_file {
-		p.editor.init_style(p.active_scintilla_hwnd)
-		p.buffer_is_config_file = true
-	} else {
-		p.editor.clear_regex_test(p.active_scintilla_hwnd, p.indicator_id)
-		p.buffer_is_config_file = false
-		p.check_lexer(buffer_id)
-	}
-}
-
-pub fn (mut p Plugin) on_language_changed(buffer_id usize) {
-	p.check_lexer(buffer_id)
-}
-
-pub fn (mut p Plugin) on_update_ui(hwnd voidptr) {
-	match true {
-		// keep config file check first since buffer_is_of_interest is true anyway
-		p.buffer_is_config_file { 
-			p.editor.style_config(p.active_scintilla_hwnd, p.indicator_id) 
-		}
-		p.buffer_is_of_interest { 
-			p.style(hwnd)
-		}
-		else{}
-	}
-}
-
-pub fn (mut p Plugin) on_margin_clicked(hwnd voidptr) {
-	match true {
-		// keep config file check first since buffer_is_of_interest is true anyway
-		p.buffer_is_config_file { p.editor.style_config(p.active_scintilla_hwnd, p.indicator_id) }
-		p.buffer_is_of_interest { p.style(hwnd) }
-		else{}
-	}
-}
-
-pub fn  (mut p Plugin) on_modified(position isize) {
-	if p.buffer_is_config_file && (! p.npp.is_single_view() ) {
-		p.editor.highlight_match(p.active_scintilla_hwnd, position, p.indicator_id)
-	}
 }

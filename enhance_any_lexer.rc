@@ -1,8 +1,8 @@
 #include <windows.h>
 
 VS_VERSION_INFO	VERSIONINFO
-FILEVERSION    	0, 5, 0, 0
-PRODUCTVERSION 	0, 5, 0, 0
+FILEVERSION    	1, 0, 0, 0
+PRODUCTVERSION 	1, 0, 0, 0
 FILEFLAGSMASK  	VS_FFI_FILEFLAGSMASK
 #ifdef _DEBUG
 	FILEFLAGS	VS_FF_DEBUG | VS_FF_PRERELEASE
@@ -19,12 +19,12 @@ BEGIN
     BEGIN
       VALUE "CompanyName", "Ekopalypse"
       VALUE "FileDescription", "Enhance any lexer plugin for Notepad++"
-      VALUE "FileVersion", "0.5.0.0"
+      VALUE "FileVersion", "1.0.0.0"
       VALUE "InternalName", "EnhanceAnyLexer"
       VALUE "LegalCopyright", "Copyright (C) 2022 Ekopalypse"
       VALUE "OriginalFilename", "EnhanceAnyLexer.dll"
       VALUE "ProductName", "EnhanceAnyLexer"
-      VALUE "ProductVersion", "0.5.0.0"
+      VALUE "ProductVersion", "1.0.0.0"
     END
   END
   BLOCK "VarFileInfo"

@@ -91,3 +91,11 @@ pub fn (n Npp) move_to_other_view() {
 pub fn (n Npp) get_notepad_version() usize {
 	return usize(n.call(nppm_getnppversion, 0, 0))
 }
+
+pub fn (n Npp) get_active_buffer_ids() (isize, isize) {
+	view0_index := n.call(nppm_getcurrentdocindex, 0, 0)
+	view1_index := n.call(nppm_getcurrentdocindex, 0, 1)
+	view0_id := n.call(nppm_getbufferidfrompos, usize(view0_index), 0)
+	view1_id := n.call(nppm_getbufferidfrompos, usize(view1_index), 1)
+	return view0_id, view1_id
+}

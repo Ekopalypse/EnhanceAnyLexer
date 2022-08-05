@@ -41,12 +41,14 @@ pub mut:
 	func_items []FuncItem
 	active_scintilla_hwnd voidptr
 	config_file string
-	buffer_is_of_interest bool
+	view0_is_of_interest bool
+	view1_is_of_interest bool
 	buffer_is_config_file bool
 	lexers_to_enhance config.Config
+	lexers_to_enhance_view0 config.Lexer
+	lexers_to_enhance_view1 config.Lexer
 	indicator_id int
 	offset int
-	already_styled bool
 	npp_version usize
 	regex_error_style_id int = 30
 	regex_error_color int = 0x756ce0
@@ -122,11 +124,8 @@ fn be_notified(notification &sci.SCNotification) {
 			p.on_language_changed(notification.nmhdr.id_from)
 		}
 		sci.scn_updateui {
-			if notification.nmhdr.hwnd_from == p.npp_data.scintilla_main_handle {
-				p.on_update_ui(p.editor.main_hwnd)
-			} else {
-				p.on_update_ui(p.editor.other_hwnd)
-			}
+			// if (notification.updated & 0xC) == 0 { return }
+			p.on_update(notification.nmhdr.hwnd_from)
 		}
 		sci.scn_modified {
 			mod_type := notification.modification_type & (sci.sc_mod_inserttext | sci.sc_mod_deletetext)
@@ -135,11 +134,7 @@ fn be_notified(notification &sci.SCNotification) {
 			}
 		}
 		sci.scn_marginclick {
-			if notification.nmhdr.hwnd_from == p.npp_data.scintilla_main_handle {
-				p.on_margin_clicked(p.editor.main_hwnd)
-			} else {
-				p.on_margin_clicked(p.editor.other_hwnd)
-			}
+			p.on_update(notification.nmhdr.hwnd_from)
 		}
 		else {}
 	}
@@ -208,9 +203,7 @@ excluded_styles = 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,20,21,22,23
 pub fn open_config() {
 	if os.exists(p.config_file) { 
 		p.npp.open_document(p.config_file) 
-		if p.npp.is_single_view() {
-			p.npp.move_to_other_view()
-		}
+		p.npp.move_to_other_view()
 	}
 }
 

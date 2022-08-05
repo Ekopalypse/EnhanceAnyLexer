@@ -17,7 +17,6 @@ pub mut:
 pub struct Config {
 pub mut:
 	all map[string]Lexer
-	current Lexer
 }
 
 pub fn read(config_file string) {

@@ -126,6 +126,9 @@ regex_error_color=0x756ce0
 ; excluded_styles = 1,2,3,4,5 ...
 ; The numbers refer to the style IDs used by the lexer and
 ; can be taken from the file stylers.xml or USED_THEME_NAME.xml
+; and in case of UDLs the mapping is only described in the source code
+; https://github.com/notepad-plus-plus/notepad-plus-plus/blob/master/lexilla/include/SciLexer.h
+; starting from SCE_USER_STYLE_DEFAULT
 
 ; For example:
 ;

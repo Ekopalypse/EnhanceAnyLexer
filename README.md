@@ -66,6 +66,8 @@ endif
 
 
 ## Release History
+* 1.0.1
+	* Documentation update
 * 1.0.0
 	* Support scrolling inactive view
 * 0.5.0

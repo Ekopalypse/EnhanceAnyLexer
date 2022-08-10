@@ -5,6 +5,8 @@ import notepadpp
 import scintilla as sci
 import config
 
+#include "version.h"
+
 fn C._vinit(int, voidptr)
 fn C._vcleanup()
 fn C.GC_INIT()
@@ -209,8 +211,10 @@ pub fn open_config() {
 
 
 pub fn about(){
-	title := 'Enhance any lexer for Notepad++'
-	text := '\tEnhanceAnyLexer v0.4.0
+	version := unsafe { cstring_to_vstring(voidptr(C.VER_VERSION_STR)) }
+	title := unsafe { cstring_to_vstring(voidptr(C.VER_FILEDESCRIPTION_STR)) }
+	product := unsafe { cstring_to_vstring(voidptr(C.VER_PRODUCTNAME_STR)) }
+	text := '\t${product} v${version}
 
 \tAuthor: Ekopalypse
 

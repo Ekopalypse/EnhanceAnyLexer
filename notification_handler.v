@@ -130,6 +130,9 @@ regex_error_color=0x756ce0
 ; https://github.com/notepad-plus-plus/notepad-plus-plus/blob/master/lexilla/include/SciLexer.h
 ; starting from SCE_USER_STYLE_DEFAULT
 
+; The regular expression syntax is explained at
+; https://npp-user-manual.org/docs/searching/#regular-expressions
+
 ; For example:
 ;
 ; [markdown (preinstalled)]

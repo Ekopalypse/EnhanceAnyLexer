@@ -22,7 +22,7 @@ pub fn (mut n Npp) init() {
 	n.splitter_hwnd = C.FindWindowExW(
 		n.hwnd,
 		voidptr(0),
-		"splitterContainer".to_wide(), 
+		"splitterContainer".to_wide(),
 		voidptr(0)
 	)
 }
@@ -49,6 +49,9 @@ pub fn(n Npp) open_document(filename string) {
 
 pub fn(n Npp) get_language_name(buffer_id usize) string {
 	lang_type := n.call(nppm_getbufferlangtype, buffer_id, isize(0))
+	if lang_type == -1 {
+		return 'UNKNOWN_ERROR'
+	}
 	mut buffer_size := int(n.call(nppm_getlanguagename, usize(lang_type), isize(0))) + 1
 	mut buffer := alloc_wide(buffer_size)
 
@@ -98,4 +101,8 @@ pub fn (n Npp) get_active_buffer_ids() (isize, isize) {
 	view0_id := n.call(nppm_getbufferidfrompos, usize(view0_index), 0)
 	view1_id := n.call(nppm_getbufferidfrompos, usize(view1_index), 1)
 	return view0_id, view1_id
+}
+
+pub fn (n Npp) check_menu(item usize, checked isize) {
+	n.call(nppm_setmenuitemcheck, item, checked)
 }

@@ -15,6 +15,7 @@ fn C.MessageBoxW(voidptr, &u16, &u16, u32)
 const (
 	plugin_name = 'EnhanceAnyLexer'
 	config_file = 'EnhanceAnyLexerConfig.ini'
+	disable_plugin_flag_file = "EnhanceAnyLexer_disabled"
 )
 
 __global ( p Plugin )
@@ -54,6 +55,8 @@ pub mut:
 	npp_version usize
 	regex_error_style_id int = 30
 	regex_error_color int = 0x756ce0
+	plugin_config_dir string
+	plugin_enabled bool
 }
 
 
@@ -98,15 +101,21 @@ fn be_notified(notification &sci.SCNotification) {
 	match notification.nmhdr.code {
 		notepadpp.nppn_ready {
 			p.npp_version = p.npp.get_notepad_version()
-			plugin_config_dir := os.join_path(p.npp.get_plugin_config_dir(), plugin_name)
-			if ! os.exists(plugin_config_dir) {
-				os.mkdir(plugin_config_dir) or {
-					err_msg := 'Unable to create ${plugin_config_dir}\n${winapi_lasterr_str()}'
+			p.plugin_config_dir = os.join_path(p.npp.get_plugin_config_dir(), plugin_name)
+			if ! os.exists(p.plugin_config_dir) {
+				os.mkdir(p.plugin_config_dir) or {
+					err_msg := 'Unable to create ${p.plugin_config_dir}\n${winapi_lasterr_str()}'
 					C.MessageBoxW(p.npp_data.npp_handle, err_msg.to_wide(), 'ERROR'.to_wide(), 0)
 					return
 				}
 			}
-			p.config_file = os.join_path(plugin_config_dir, config_file)
+			if ! os.exists(os.join_path(p.plugin_config_dir, disable_plugin_flag_file)) {
+				p.plugin_enabled = true
+				set_menu_plugin_disabled(0)
+			} else {
+				set_menu_plugin_disabled(1)
+			}
+			p.config_file = os.join_path(p.plugin_config_dir, config_file)
 			p.initialize()
 		}
 		notepadpp.nppn_filesaved {
@@ -115,7 +124,8 @@ fn be_notified(notification &sci.SCNotification) {
 			}
 		}
 		notepadpp.nppn_bufferactivated {
-			if p.npp.get_current_view() == 0 {		
+			if p.plugin_enabled { return }
+			if p.npp.get_current_view() == 0 {
 				p.active_scintilla_hwnd = p.editor.main_hwnd
 			} else {
 				p.active_scintilla_hwnd = p.editor.other_hwnd
@@ -123,19 +133,31 @@ fn be_notified(notification &sci.SCNotification) {
 			p.on_buffer_activated(notification.nmhdr.id_from)
 		}
 		notepadpp.nppn_langchanged {
+			if ! p.plugin_enabled { return }
 			p.on_language_changed(notification.nmhdr.id_from)
 		}
+		notepadpp.nppn_shutdown {
+			disable_flag_file := os.join_path(p.plugin_config_dir, disable_plugin_flag_file)
+			if ! p.plugin_enabled {
+				os.create(disable_flag_file) or { return }
+			} else {
+				os.rm(disable_flag_file) or { return }
+			}
+		}
 		sci.scn_updateui {
+			if ! p.plugin_enabled { return }
 			// if (notification.updated & 0xC) == 0 { return }
 			p.on_update(notification.nmhdr.hwnd_from)
 		}
 		sci.scn_modified {
+			if ! p.plugin_enabled { return }
 			mod_type := notification.modification_type & (sci.sc_mod_inserttext | sci.sc_mod_deletetext)
 			if mod_type > 0 {
 				p.on_modified(notification.position)
 			}
 		}
 		sci.scn_marginclick {
+			if ! p.plugin_enabled { return }
 			p.on_update(notification.nmhdr.hwnd_from)
 		}
 		else {}
@@ -153,8 +175,11 @@ fn message_proc(msg u32, wparam usize, lparam isize) isize {
 fn get_funcs_array(mut nb_func &int) &FuncItem {
 	menu_functions := {
 		'Enhance current language': create_for_current_language
+		'Disable plugin': toggle_on_off
+		'---': voidptr(0)
 		'About': about
 	}
+	mut i := 0
 	for k, v in menu_functions {
 		mut func_name := [64]u16 {init: 0}
 		func_name_length := k.len*2
@@ -162,10 +187,11 @@ fn get_funcs_array(mut nb_func &int) &FuncItem {
 		p.func_items << FuncItem {
 			item_name: func_name
 			p_func: v
-			cmd_id: 0
+			cmd_id: i
 			init_to_check: false
 			p_sh_key: voidptr(0)
 		}
+		i += 1
 	}
 
 	unsafe { *nb_func = p.func_items.len }
@@ -190,7 +216,7 @@ pub fn create_for_current_language() {
 	if ! lexer_already_defined {
 		tmpl := '
 [${current_language}]
-; color each word
+; color each word, 0x66ad1 is the color used, see the description above for more information on the color coding.
 0x66ad1 = \\w+
 ; check in the respective styler xml if the following IDs are valid
 excluded_styles = 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,20,21,22,23
@@ -203,12 +229,26 @@ excluded_styles = 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,20,21,22,23
 }
 
 pub fn open_config() {
-	if os.exists(p.config_file) { 
-		p.npp.open_document(p.config_file) 
+	if os.exists(p.config_file) {
+		p.npp.open_document(p.config_file)
 		p.npp.move_to_other_view()
 	}
 }
 
+fn set_menu_plugin_disabled(checked isize) {
+	p.npp.check_menu(usize(p.func_items[1].cmd_id), checked)
+}
+
+pub fn toggle_on_off() {
+	p.plugin_enabled = !p.plugin_enabled
+	checked := if !p.plugin_enabled {
+		p.editor.clear_styled_views(p.indicator_id)
+		1
+	} else {
+		0
+	}
+	set_menu_plugin_disabled(checked)
+}
 
 pub fn about(){
 	version := unsafe { cstring_to_vstring(voidptr(C.VER_VERSION_STR)) }

@@ -63,10 +63,10 @@ pub mut:
 
 [inline]
 fn (e Editor) call(hwnd voidptr, msg int, wparam usize, lparam isize) isize{
-	if hwnd == e.main_hwnd {
-		return e.main_func(hwnd, u32(msg), wparam, lparam)
-	} else {
-		return e.other_func(hwnd, u32(msg), wparam, lparam)
+	match hwnd {
+		e.main_hwnd { return e.main_func(hwnd, u32(msg), wparam, lparam) }
+		e.other_hwnd { return e.other_func(hwnd, u32(msg), wparam, lparam) }
+		else { return 0 }
 	}
 }
 
@@ -170,7 +170,7 @@ pub fn (e Editor) style_config(hwnd voidptr, indicator_id int) {
 		range_pointer := charptr(e.call(hwnd, sci_getrangepointer, usize(found_pos), isize(length)))
 		color_text := unsafe { range_pointer.vstring_with_len(int(length)) }
 		color := color_text.replace('#', '0x').int()
-		
+
 		e.call(hwnd, sci_setindicatorcurrent, usize(indicator_id), isize(0))
 		e.call(hwnd, sci_setindicatorvalue, usize(color | sc_indicvaluebit), isize(0))
 		e.call(hwnd, sci_indicatorfillrange, usize(found_pos), isize(length))
@@ -188,7 +188,7 @@ pub fn (e Editor) append_text(hwnd voidptr, text string) {
 fn (e Editor) scroll_to_line(hwnd voidptr, line usize) {
 	e.call(hwnd, sci_setvisiblepolicy, usize(caret_jumps | caret_even), 0)
 	e.call(hwnd, sci_ensurevisibleenforcepolicy, line, 0)
-	e.call(hwnd, sci_gotoline, line, 0)	
+	e.call(hwnd, sci_gotoline, line, 0)
 }
 
 pub fn (e Editor) goto_last_line(hwnd voidptr) {
@@ -212,13 +212,13 @@ pub fn (e Editor) goto_known_lexer(hwnd voidptr, search string) {
 pub fn (e Editor) highlight_match(hwnd voidptr, position isize, indicator_id int) {
 	line := e.call(hwnd, sci_linefromposition, usize(position), 0)
 	start_pos := e.call(hwnd, sci_positionfromline, usize(line), 0)
-	
+
 	length := e.call(hwnd, sci_getline, usize(line), 0)
 	range_pointer := charptr(e.call(hwnd, sci_getrangepointer, usize(start_pos), isize(length)))
 	mut text := unsafe { range_pointer.vstring_with_len(int(length)) }
 
 	other_hwnd := match hwnd {
-		e.main_hwnd { e.other_hwnd } 
+		e.main_hwnd { e.other_hwnd }
 		else { e.main_hwnd }
 	}
 
@@ -226,12 +226,12 @@ pub fn (e Editor) highlight_match(hwnd voidptr, position isize, indicator_id int
 	if text.len == 0 { return }
 
 	split_pos := text.index('=') or { return }
-	if split_pos > 0 { 
+	if split_pos > 0 {
 		color_text := text[0..split_pos].trim(' ')
 		color := color_text.replace('#', '0x').int()
 		regex := text[split_pos..].trim_left('=').trim_space()
 		if regex.len == 0 { return }
-		
+
 		e.call(hwnd, sci_eolannotationclearall, 0, 0)
 
 		end_pos := e.call(other_hwnd, sci_getlength, 0, 0)
@@ -244,7 +244,7 @@ pub fn (e Editor) highlight_match(hwnd voidptr, position isize, indicator_id int
 			end := e.call(other_hwnd, sci_gettargetend, usize(0), isize(0))
 			e.style_it(other_hwnd, usize(indicator_id), color, usize(found_pos), end-found_pos)
 			found_pos = e.set_search_target(other_hwnd, regex, usize(end), usize(end_pos))
-		}	
+		}
 	}
 }
 
@@ -255,5 +255,12 @@ pub fn (e Editor) add_error_annotation(hwnd voidptr, other_hwnd voidptr, line is
 		e.call(hwnd, sci_eolannotationsetstyle, usize(line), e.eol_error_style)
 		e.call(hwnd, sci_eolannotationsettext, usize(line), isize(buffer))
 		e.call(hwnd, sci_eolannotationsetvisible, eolannotation_angle_circle, 0)
+	}
+}
+
+pub fn (e Editor) clear_styled_views(indicator int) {
+	for hwnd in [e.main_hwnd, e.other_hwnd] {
+		length := e.call(hwnd, sci_getlength, 0, 0)
+		e.clear_visible_area(hwnd, indicator, 0, length)
 	}
 }

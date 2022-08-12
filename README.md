@@ -66,6 +66,8 @@ endif
 
 
 ## Release History
+* 1.1.0
+	* Support enabling/disabling the plugin globally, fix crash issue with Npp < 8.4.3
 * 1.0.1
 	* Documentation update
 * 1.0.0

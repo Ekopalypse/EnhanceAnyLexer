@@ -51,7 +51,7 @@ pub fn read(config_file string) {
 			if offset.len == 2 {
 				p.offset = offset[1].trim(' ').int()
 			}
-		} 
+		}
 		else if line_.starts_with('regex_error_style_id') {
 			regex_error_style_id := line_.split('=')
 			if regex_error_style_id.len == 2 {
@@ -63,7 +63,8 @@ pub fn read(config_file string) {
 			if regex_error_color.len == 2 {
 				p.regex_error_color = regex_error_color[1].trim(' ').int()
 			}
-		} else {
+		}
+		else {
 			if line_.starts_with('excluded_styles') {
 				excludes := line_.split('=')
 				if excludes.len == 2 {

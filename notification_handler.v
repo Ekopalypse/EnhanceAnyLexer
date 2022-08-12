@@ -54,14 +54,14 @@ fn (mut p Plugin) on_update(sci_hwnd voidptr) {
 	mut hwnd := p.editor.main_hwnd
 	mut buffer_is_of_interest := false
 	mut view := 0
-	if sci_hwnd == p.npp_data.scintilla_main_handle { 
+	if sci_hwnd == p.npp_data.scintilla_main_handle {
 		buffer_is_of_interest = p.view0_is_of_interest
 	} else {
 		hwnd = p.editor.other_hwnd
 		buffer_is_of_interest = p.view1_is_of_interest
 		view = 1
 	}
-	
+
 	match true {
 		// keep config file check first since buffer_is_of_interest is true anyway
 		p.buffer_is_config_file { p.editor.style_config(p.active_scintilla_hwnd, p.indicator_id) }
@@ -113,12 +113,12 @@ regex_error_color=0x756ce0
 ; followed by one or more lines with the syntax
 ; color = regular expression.
 ; A color is a number in the range 0 - 16777215.
-; The notation is either pure digits or a hex notation starting with 0x or #, 
+; The notation is either pure digits or a hex notation starting with 0x or #,
 ; such as 0xff00ff or #ff00ff.
-; Please note: 
+; Please note:
 ; * red goes in the lowest byte (0x0000FF)
 ; * green goes in the center byte (0x00FF00)
-; * blue goes in the biggest byte (0xFF0000) 
+; * blue goes in the biggest byte (0xFF0000)
 ; * this BGR order might conflict with your expectation of RGB order.
 ; * see Microsoft COLORREF documentation https://docs.microsoft.com/en-us/windows/win32/gdi/colorref
 

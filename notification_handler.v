@@ -7,7 +7,6 @@ fn (mut p Plugin) check_lexer() {
 	view0_id, view1_id := p.npp.get_active_buffer_ids()
 	lang_name0 := p.npp.get_language_name(usize(view0_id))
 	lang_name1 := p.npp.get_language_name(usize(view1_id))
-
 	p.view0_is_of_interest = lang_name0 in p.lexers_to_enhance.all
 	p.view1_is_of_interest = lang_name1 in p.lexers_to_enhance.all
 	p.lexers_to_enhance_view0 =  p.lexers_to_enhance.all[lang_name0]
@@ -61,7 +60,6 @@ fn (mut p Plugin) on_update(sci_hwnd voidptr) {
 		buffer_is_of_interest = p.view1_is_of_interest
 		view = 1
 	}
-
 	match true {
 		// keep config file check first since buffer_is_of_interest is true anyway
 		p.buffer_is_config_file { p.editor.style_config(p.active_scintilla_hwnd, p.indicator_id) }

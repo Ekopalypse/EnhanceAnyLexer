@@ -56,7 +56,7 @@ pub mut:
 	regex_error_style_id int = 30
 	regex_error_color int = 0x756ce0
 	plugin_config_dir string
-	plugin_enabled bool
+	plugin_enabled bool = true
 }
 
 
@@ -109,11 +109,11 @@ fn be_notified(notification &sci.SCNotification) {
 					return
 				}
 			}
-			if ! os.exists(os.join_path(p.plugin_config_dir, disable_plugin_flag_file)) {
-				p.plugin_enabled = true
-				set_menu_plugin_disabled(0)
-			} else {
+			if os.exists(os.join_path(p.plugin_config_dir, disable_plugin_flag_file)) {
+				p.plugin_enabled = false
 				set_menu_plugin_disabled(1)
+			} else {
+				set_menu_plugin_disabled(0)
 			}
 			p.config_file = os.join_path(p.plugin_config_dir, config_file)
 			p.initialize()
@@ -124,7 +124,7 @@ fn be_notified(notification &sci.SCNotification) {
 			}
 		}
 		notepadpp.nppn_bufferactivated {
-			if p.plugin_enabled { return }
+			if ! p.plugin_enabled { return }
 			if p.npp.get_current_view() == 0 {
 				p.active_scintilla_hwnd = p.editor.main_hwnd
 			} else {
@@ -206,7 +206,6 @@ pub fn create_for_current_language() {
 		return
 	}
 	mut lexer_already_defined := current_language in p.lexers_to_enhance.all
-
 	open_config()
 	if ! (p.npp.get_current_filename() == p.config_file) {
 		err_msg := 'Unable to open ${p.config_file}'

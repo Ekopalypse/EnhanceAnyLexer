@@ -66,6 +66,8 @@ endif
 
 
 ## Release History
+* 1.1.2
+	* Revert optimization attempts.
 * 1.1.1
 	* Fix issue that Npp hangs when using word wrap and match reports a position outside defined range.
 * 1.1.0

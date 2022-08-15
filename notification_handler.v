@@ -52,12 +52,25 @@ pub fn (mut p Plugin) on_language_changed(buffer_id usize) {
 fn (mut p Plugin) on_update(sci_hwnd voidptr) {
 	mut hwnd := p.editor.main_hwnd
 	mut buffer_is_of_interest := false
+	mut visible_area_changed := false
 	mut view := 0
 	if sci_hwnd == p.npp_data.scintilla_main_handle {
-		buffer_is_of_interest = p.view0_is_of_interest
+		start_pos, end_pos := p.editor.get_visible_area_positions(hwnd, isize(p.offset))
+		if (p.view0_visible_area.start_pos != start_pos) || (p.view0_visible_area.end_pos != end_pos) {
+			visible_area_changed = true
+			p.view0_visible_area.start_pos = start_pos
+			p.view0_visible_area.end_pos = end_pos
+		}
+		buffer_is_of_interest = p.view0_is_of_interest && visible_area_changed
 	} else {
 		hwnd = p.editor.other_hwnd
-		buffer_is_of_interest = p.view1_is_of_interest
+		start_pos, end_pos := p.editor.get_visible_area_positions(hwnd, isize(p.offset))
+		if (p.view1_visible_area.start_pos != start_pos) || (p.view1_visible_area.end_pos != end_pos) {
+			visible_area_changed = true
+			p.view1_visible_area.start_pos = start_pos
+			p.view1_visible_area.end_pos = end_pos
+		}
+		buffer_is_of_interest = p.view1_is_of_interest && visible_area_changed
 		view = 1
 	}
 	match true {

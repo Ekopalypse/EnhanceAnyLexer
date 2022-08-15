@@ -36,6 +36,12 @@ mut:
 	p_sh_key voidptr
 }
 
+pub struct VisibleArea {
+pub mut:
+	start_pos isize
+	end_pos isize
+}
+
 pub struct Plugin {
 pub mut:
 	editor sci.Editor
@@ -57,6 +63,8 @@ pub mut:
 	regex_error_color int = 0x756ce0
 	plugin_config_dir string
 	plugin_enabled bool = true
+	view0_visible_area VisibleArea
+	view1_visible_area VisibleArea
 }
 
 

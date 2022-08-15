@@ -122,7 +122,7 @@ pub fn (e Editor) scan_visible_area(
 	if item.regex.len == 0 { return }
 
 	mut found_pos := e.set_search_target(hwnd, item.regex, start_pos, end_pos)
-	for found_pos > i64(-1) {
+	for (found_pos > i64(-1)) && found_pos <= end_pos {
 		end:= e.call(hwnd, sci_gettargetend, usize(0), isize(0))
 		current_style := int(e.call(hwnd, sci_getstyleat, usize(found_pos), 0))
 
@@ -158,26 +158,18 @@ pub fn (e Editor) style_config(hwnd voidptr, indicator_id int) {
 
 	start_pos := e.call(hwnd, sci_positionfromline, usize(first_visible_line), 0)
 	end_pos := e.call(hwnd, sci_getlineendposition, usize(last_visible_line), 0)
-	e.call(hwnd, sci_setsearchflags, usize(scfind_regexp | scfind_posix), isize(0))
-	e.call(hwnd, sci_settargetstart, usize(start_pos), isize(0))
-	e.call(hwnd, sci_settargetend, usize(end_pos), isize(0))
+	mut found_pos := e.set_search_target(hwnd, e.config_regex, usize(start_pos), usize(end_pos))
+	for (found_pos > i64(-1)) && (found_pos <= end_pos) {
+		end:= e.call(hwnd, sci_gettargetend, usize(0), isize(0))
 
-	mut found_pos := i64(e.call(hwnd, sci_searchintarget, usize(e.config_regex.len), isize(e.config_regex.str)))
-	for found_pos > i64(-1) {
-		end:= i64(e.call(hwnd, sci_gettargetend, usize(0), isize(0)))
 		length := end-found_pos
 		// get the color text
 		range_pointer := charptr(e.call(hwnd, sci_getrangepointer, usize(found_pos), isize(length)))
 		color_text := unsafe { range_pointer.vstring_with_len(int(length)) }
 		color := color_text.replace('#', '0x').int()
 
-		e.call(hwnd, sci_setindicatorcurrent, usize(indicator_id), isize(0))
-		e.call(hwnd, sci_setindicatorvalue, usize(color | sc_indicvaluebit), isize(0))
-		e.call(hwnd, sci_indicatorfillrange, usize(found_pos), isize(length))
-
-		e.call(hwnd, sci_settargetstart, usize(end), isize(0))
-		e.call(hwnd, sci_settargetend, usize(end_pos), isize(0))
-		found_pos = i64(e.call(hwnd, sci_searchintarget, usize(e.config_regex.len), isize(e.config_regex.str)))
+		e.style_it(hwnd, usize(indicator_id), color, usize(found_pos), end-found_pos)
+		found_pos = e.set_search_target(hwnd, e.config_regex, usize(end), usize(end_pos))
 	}
 }
 

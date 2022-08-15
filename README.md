@@ -66,6 +66,8 @@ endif
 
 
 ## Release History
+* 1.1.1
+	* Fix issue that Npp hangs when using word wrap and match reports a position outside defined range.
 * 1.1.0
 	* Support enabling/disabling the plugin globally, fix crash issue with Npp < 8.4.3
 * 1.0.1

@@ -66,6 +66,8 @@ endif
 
 
 ## Release History
+* 1.1.3
+	* Experimental version
 * 1.1.2
 	* Revert optimization attempts.
 * 1.1.1

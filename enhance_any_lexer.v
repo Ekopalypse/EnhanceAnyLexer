@@ -20,6 +20,7 @@ const (
 
 __global ( p Plugin )
 
+
 struct NppData {
 mut:
 	npp_handle voidptr

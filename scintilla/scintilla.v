@@ -72,9 +72,16 @@ fn (e Editor) call(hwnd voidptr, msg int, wparam usize, lparam isize) isize{
 
 pub fn (e Editor) get_visible_area_positions(hwnd voidptr, offset isize) (isize, isize) {
 	mut first_visible_line := e.call(hwnd, sci_getfirstvisibleline, 0, 0)
-	first_visible_line = e.call(hwnd, sci_doclinefromvisible, usize(first_visible_line), 0)
+	first_line1 := e.call(hwnd, sci_doclinefromvisible, usize(first_visible_line), 0)
+	first_line2 := e.call(hwnd, sci_visiblefromdocline, usize(first_visible_line), 0)
+
 	lines_on_screen := e.call(hwnd, sci_linesonscreen, usize(0), 0)
-	mut last_visible_line := e.call(hwnd, sci_doclinefromvisible, usize(first_visible_line+lines_on_screen), 0)
+	last_line1 := e.call(hwnd, sci_doclinefromvisible, usize(first_visible_line+lines_on_screen), 0)
+	last_line2 := e.call(hwnd, sci_visiblefromdocline, usize(first_visible_line+lines_on_screen), 0)
+	
+	first_visible_line = if first_line1 < first_line2 { first_line1 } else { first_line2 }
+	
+	mut last_visible_line := if last_line1 > last_line2 { last_line1 } else { last_line2 }
 
 	if offset > 0 {
 		first_visible_line = if first_visible_line < offset { 0 } else { first_visible_line - offset }
@@ -120,7 +127,6 @@ pub fn (e Editor) scan_visible_area(
 		start_pos usize,
 		end_pos usize) {
 	if item.regex.len == 0 { return }
-
 	mut found_pos := e.set_search_target(hwnd, item.regex, start_pos, end_pos)
 	for (found_pos > i64(-1)) && found_pos <= end_pos {
 		end:= e.call(hwnd, sci_gettargetend, usize(0), isize(0))

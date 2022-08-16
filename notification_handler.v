@@ -84,7 +84,7 @@ pub fn (mut p Plugin) initialize() {
 		defer { f.close() }
 		f.write_string('
 ; The configuration is stored in an ini-like syntax.
-; The global section defines the indicator ID used for styling and whether logging(debug_mode) is enabled.
+; The global section defines the indicator ID used for styling.
 ; A line starting with a semicolon is treated as a comment line, NO inline comment is supported.
 ; ONLY styling of the text foreground color is supported.
 ; Updates to the configuration are read when the file is saved and applied immediately

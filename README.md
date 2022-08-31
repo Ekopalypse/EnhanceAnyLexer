@@ -67,7 +67,7 @@ endif
 
 ## Release History
 * 1.1.3
-	* Experimental version
+	* Extend visual area
 * 1.1.2
 	* Revert optimization attempts.
 * 1.1.1

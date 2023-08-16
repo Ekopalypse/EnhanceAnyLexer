@@ -92,7 +92,7 @@ pub fn (n Npp) move_to_other_view() {
 }
 
 pub fn (n Npp) get_notepad_version() usize {
-	return usize(n.call(nppm_getnppversion, 0, 0))
+	return usize(n.call(nppm_getnppversion, 1, 0))
 }
 
 pub fn (n Npp) get_active_buffer_ids() (isize, isize) {

@@ -52,9 +52,9 @@ pub mut:
 pub struct Editor {
 	config_regex string = r'^(?:0x|#|\d)[0-9a-fA-F]+\b'
 pub:
-	main_func SCI_FN_DIRECT
+	main_func SCI_FN_DIRECT = unsafe { nil }
 	main_hwnd voidptr
-	other_func SCI_FN_DIRECT
+	other_func SCI_FN_DIRECT  = unsafe { nil }
 	other_hwnd voidptr
 pub mut:
 	eol_error_style int
@@ -132,7 +132,7 @@ pub fn (e Editor) scan_visible_area(
 		end:= e.call(hwnd, sci_gettargetend, usize(0), isize(0))
 		current_style := int(e.call(hwnd, sci_getstyleat, usize(found_pos), 0))
 
-		if current_style !in excluded_styles {
+		if (current_style !in excluded_styles) || (current_style in item.whitelist_styles) {
 			e.style_it(hwnd, usize(indicator_id), item.color, usize(found_pos), end-found_pos)
 		}
 

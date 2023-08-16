@@ -20,6 +20,7 @@ fn (mut p Plugin) style(hwnd voidptr, view int) {
 	p.editor.clear_visible_area(hwnd, p.indicator_id, usize(start_pos), end_pos-start_pos)
 	current_lang := if view == 0 { p.lexers_to_enhance_view0 } else { p.lexers_to_enhance_view1 }
 	for item in current_lang.regexes {
+
 		p.editor.scan_visible_area(
 			hwnd,
 			item,
@@ -109,7 +110,7 @@ regex_error_color=0x756ce0
 ; Each configured lexer must have a section with its name,
 ; (NOTE: use the menu function "Enhance current language" as it takes care of the correct naming)
 ; followed by one or more lines with the syntax
-; color = regular expression.
+; color[optional whitelist] = regular expression.
 ; A color is a number in the range 0 - 16777215.
 ; The notation is either pure digits or a hex notation starting with 0x or #,
 ; such as 0xff00ff or #ff00ff.
@@ -119,6 +120,11 @@ regex_error_color=0x756ce0
 ; * blue goes in the biggest byte (0xFF0000)
 ; * this BGR order might conflict with your expectation of RGB order.
 ; * see Microsoft COLORREF documentation https://docs.microsoft.com/en-us/windows/win32/gdi/colorref
+
+; The optional whitelist is expected in the form of [1,3,16 ... ] which correspond to the style IDs of the current lexer.
+; A whitelist is only useful if an excluded_styles line has been configured
+; and means that this regex will ignore the excluded_styles list for these IDs and apply its style.
+; See excluded_styles for further information.
 
 ; The optional line of excluded_styles is expected in the form of
 ; excluded_styles = 1,2,3,4,5 ...

@@ -5,6 +5,7 @@ pub struct RegexSetting {
 pub mut:
 	regex string
 	color int
+	whitelist_styles []int
 }
 
 pub struct Lexer {
@@ -79,6 +80,13 @@ pub fn read(config_file string) {
 				split_pos := line_.index('=') or { continue }
 				if split_pos > 0 {
 					color__ := line_[0..split_pos].trim(' ')
+					whitelist_str := color__.find_between('[', ']')
+					if whitelist_str.len > 0 {
+						setting.whitelist_styles = whitelist_str.split(",").map(int(it.trim_space().parse_int(10, 32) or { -1 }))
+					} else {
+						setting.whitelist_styles.clear()
+					}
+
 					setting.color = color__.replace('#', '0x').int()
 					regex := line_[split_pos..].trim_left('=').trim(' ')
 					if regex.len > 0 {

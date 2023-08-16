@@ -216,8 +216,12 @@ pub fn create_for_current_language() {
 	if ! lexer_already_defined {
 		tmpl := '
 [${current_language}]
-; color each word, 0x66ad1 is the color used, see the description above for more information on the color coding.
-0x66ad1 = \\w+
+; Each 3-digit number is styled with the color 0xff0050.
+; Matches styled by IDs 3 and 6 are recolored.
+0xff0050[3, 6] = \\d{3}
+; Each word "test" is styled with the color 0x00bb00
+; but only if the matches are not already styled by one of the IDs in excluded_styles.
+0x00bb00 = test
 ; check in the respective styler xml if the following IDs are valid
 excluded_styles = 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,20,21,22,23
 '

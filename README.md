@@ -66,6 +66,8 @@ endif
 
 
 ## Release History
+* 1.2.0
+	* Introduce a per-regex whitelist option
 * 1.1.3
 	* Extend visual area
 * 1.1.2

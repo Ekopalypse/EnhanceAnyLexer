@@ -31,7 +31,7 @@ mut:
 struct FuncItem {
 mut:
 	item_name [64]u16
-	p_func fn()
+	p_func fn() = unsafe { nil }
 	cmd_id int
 	init_to_check bool
 	p_sh_key voidptr
@@ -241,11 +241,11 @@ fn set_menu_plugin_disabled(checked isize) {
 
 pub fn toggle_on_off() {
 	p.plugin_enabled = !p.plugin_enabled
-	checked := if !p.plugin_enabled {
+	checked := if p.plugin_enabled {
+		0
+	} else {
 		p.editor.clear_styled_views(p.indicator_id)
 		1
-	} else {
-		0
 	}
 	set_menu_plugin_disabled(checked)
 }

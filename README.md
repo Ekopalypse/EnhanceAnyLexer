@@ -1,5 +1,6 @@
 # EnhanceAnyLexer
-Notepad++ plugin that adds an additional foreground colouring option to existing lexers
+Notepad++ plugin that adds an additional foreground colouring option for your text content.  
+This means that you can define regular expressions to highlight parts of text/code, in addition to what standard lexers, such as those for Python, C, Rust, UDL ... do.
 
 ***NOTE: An existing EnhanceAnyLexerConfig.ini is obsolete if you use version 0.5.  
 This means that you must either rename the ini and let the plugin create a new one automatically  
@@ -9,6 +10,19 @@ regex_error_style_id=30
 regex_error_color=0x756ce0
 ~~~
 ***Of course, these values are configurable.***
+
+Some examples to show what can be done.
+Normal text, no lexers involved
+
+![normal_text](https://github.com/Ekopalypse/EnhanceAnyLexer/assets/47723516/0e19538e-0307-4cdd-a24a-320a9a0cc065)
+
+Using the standard python lexer
+
+![python_before](https://github.com/Ekopalypse/EnhanceAnyLexer/assets/47723516/354bbeb9-596c-4841-8dec-4c805b67014d)
+
+and in addition using EnhanceAnyLexer plugin
+
+![python_after](https://github.com/Ekopalypse/EnhanceAnyLexer/assets/47723516/a786bf63-ed5c-48e7-870e-7ffcfdc74f32)
 
 ## Installation
 

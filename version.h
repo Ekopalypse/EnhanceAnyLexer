@@ -1,5 +1,5 @@
-#define VER_VERSION                 1,2,0,0
-#define VER_VERSION_STR             "1.2.0.0\0"
+#define VER_VERSION                 1,3,0,0
+#define VER_VERSION_STR             "1.3.0.0\0"
 
 #define VER_COMPANYNAME_STR         "Ekopalypse\0"
 #define VER_FILEDESCRIPTION_STR     "Enhance any lexer plugin for Notepad++\0"

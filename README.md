@@ -1,12 +1,12 @@
 # EnhanceAnyLexer
-Notepad++ plugin that adds an additional foreground colouring option for your text content.  
+Notepad++ plugin that adds an additional foreground colouring option for your text content.
 This means that you can define regular expressions to highlight parts of text/code, in addition to what standard lexers, such as those for Python, C, Rust, UDL ... do.
 
-***NOTE: An existing EnhanceAnyLexerConfig.ini is obsolete if you use version 0.5.  
-This means that you must either rename the ini and let the plugin create a new one automatically  
+***NOTE: An existing EnhanceAnyLexerConfig.ini is obsolete if you use version 0.5.
+This means that you must either rename the ini and let the plugin create a new one automatically
 or add the following two lines to the global section yourself.***
 ~~~
-regex_error_style_id=30  
+regex_error_style_id=30
 regex_error_color=0x756ce0
 ~~~
 ***Of course, these values are configurable.***
@@ -31,15 +31,15 @@ and in addition using EnhanceAnyLexer plugin
 ## Usage example
 
 - Start Notepad++
-- Configure additional coloring by calling "Enhance current language" from the EnhanceAnyLexer plugin menu.  
-  (You will find a more detailed description in the configuration file.)  
+- Configure additional coloring by calling "Enhance current language" from the EnhanceAnyLexer plugin menu.
+  (You will find a more detailed description in the configuration file.)
 - Open a source file
 
 
 ## Building manually
 
-This plugin is written in the [programming language V](https://github.com/vlang/v) and must therefore be available to build this plugin.  
-Furthermore, a current version of the gcc compiler, >= version 10 recommended, must be installed.  
+This plugin is written in the [programming language V](https://github.com/vlang/v) and must therefore be available to build this plugin.
+Furthermore, a current version of the gcc compiler, >= version 10 recommended, must be installed.
 An example for the use with NppExec:
 
 ```
@@ -67,7 +67,7 @@ set COMPILER_FLAGS= -cc gcc -prod -d static_boehm -gc boehm -keepc -enable-globa
 if $(ARCH)==x64 then
   if $(CC)==gcc then
     $(VEXE) -cc $(CC) $(COMPILER_FLAGS) -cflags -static-libgcc -o $(PLUGIN_PATH) .
-  endif  
+  endif
 else
   if $(CC)==gcc then
     ENV_SET PATH=D:\ProgramData\Compiler\mingw32\bin
@@ -80,6 +80,8 @@ endif
 
 
 ## Release History
+* 1.3.0
+	* Support for plugin communication via NPPM_MSGTOPLUGIN. Currently only the use of the "config file saved" message is possible.
 * 1.2.0
 	* Introduce a per-regex whitelist option
 * 1.1.3
@@ -97,7 +99,7 @@ endif
 * 0.5.0
     * Add a poor man regex linter functionality
 * 0.4.0
-    * Add convenience functions to make it easier to create the correct config sections 
+    * Add convenience functions to make it easier to create the correct config sections
 * 0.3.0
     * First official Notepad++ pluginAdmin release
 * 0.2.0

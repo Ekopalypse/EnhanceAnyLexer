@@ -4,6 +4,13 @@ fn C.SendMessageW(hwnd voidptr, msg u32, wparam usize, lparam isize) isize
 fn C.FindWindowExW(hWndParent voidptr, hWndChildAfter voidptr, lpszClass &u16, lpszWindow &u16) voidptr
 fn C.IsWindowVisible(hWnd voidptr) bool
 
+pub struct CommunicationInfo {
+pub mut:
+	internal_msg    int
+	src_module_name &u16 = &u16(0)
+	info            voidptr
+}
+
 pub struct Npp {
 mut:
 	hwnd voidptr

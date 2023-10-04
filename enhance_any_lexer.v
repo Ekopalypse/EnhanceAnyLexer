@@ -13,9 +13,10 @@ fn C.GC_INIT()
 fn C.MessageBoxW(voidptr, &u16, &u16, u32)
 
 const (
-	plugin_name = 'EnhanceAnyLexer'
-	config_file = 'EnhanceAnyLexerConfig.ini'
-	disable_plugin_flag_file = "EnhanceAnyLexer_disabled"
+	plugin_name = unsafe { cstring_to_vstring(voidptr(C.VER_PRODUCTNAME_STR)) }
+	config_file = '${plugin_name}Config.ini'
+	disable_plugin_flag_file = "${plugin_name}_disabled"
+	config_file_saved = 1
 )
 
 __global ( p Plugin )
@@ -168,7 +169,14 @@ fn be_notified(notification &sci.SCNotification) {
 
 [export: messageProc]
 fn message_proc(msg u32, wparam usize, lparam isize) isize {
-	return isize(1)
+	if msg == notepadpp.nppm_msgtoplugin {
+		ci := &notepadpp.CommunicationInfo(lparam)
+		if ci.internal_msg == config_file_saved {
+			p.on_config_file_saved()
+		}
+		return 0
+	}
+	return 1
 }
 
 

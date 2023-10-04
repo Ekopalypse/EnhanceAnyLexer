@@ -78,9 +78,9 @@ pub fn (e Editor) get_visible_area_positions(hwnd voidptr, offset isize) (isize,
 	lines_on_screen := e.call(hwnd, sci_linesonscreen, usize(0), 0)
 	last_line1 := e.call(hwnd, sci_doclinefromvisible, usize(first_visible_line+lines_on_screen), 0)
 	last_line2 := e.call(hwnd, sci_visiblefromdocline, usize(first_visible_line+lines_on_screen), 0)
-	
+
 	first_visible_line = if first_line1 < first_line2 { first_line1 } else { first_line2 }
-	
+
 	mut last_visible_line := if last_line1 > last_line2 { last_line1 } else { last_line2 }
 
 	if offset > 0 {
@@ -248,10 +248,10 @@ pub fn (e Editor) highlight_match(hwnd voidptr, position isize, indicator_id int
 
 pub fn (e Editor) add_error_annotation(hwnd voidptr, other_hwnd voidptr, line isize) {
 	if p.npp_version >= 0x80021 {
-		buffer := vcalloc(512)
-		e.call(hwnd, sci_getboostregexerrmsg, 512, isize(buffer))
+		buffer := isize(vcalloc(512))
+		e.call(hwnd, sci_getboostregexerrmsg, 512, buffer)
 		e.call(hwnd, sci_eolannotationsetstyle, usize(line), e.eol_error_style)
-		e.call(hwnd, sci_eolannotationsettext, usize(line), isize(buffer))
+		e.call(hwnd, sci_eolannotationsettext, usize(line), buffer)
 		e.call(hwnd, sci_eolannotationsetvisible, eolannotation_angle_circle, 0)
 	}
 }

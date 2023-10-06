@@ -148,7 +148,6 @@ fn be_notified(notification &sci.SCNotification) {
 		}
 		sci.scn_updateui {
 			if ! p.plugin_enabled { return }
-			// if (notification.updated & 0xC) == 0 { return }
 			p.on_update(notification.nmhdr.hwnd_from)
 		}
 		sci.scn_modified {

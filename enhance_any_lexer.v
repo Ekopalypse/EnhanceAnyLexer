@@ -52,7 +52,7 @@ pub mut:
 	lexers_to_enhance config.Config
 	lexers_to_enhance_view0 config.Lexer
 	lexers_to_enhance_view1 config.Lexer
-	indicator_id int
+	indicator_id int = -1
 	offset int
 	npp_version usize
 	regex_error_style_id int = 30
@@ -72,7 +72,6 @@ fn is_unicode() bool {
 fn get_name() &u16 {
 	return plugin_name.to_wide()
 }
-
 
 [export: setInfo]
 fn set_info(nppData NppData) {
@@ -118,6 +117,11 @@ fn be_notified(notification &sci.SCNotification) {
 				set_menu_plugin_disabled(0)
 			}
 			p.config_file = os.join_path(p.plugin_config_dir, config_file)
+			if p.npp_version >= 0x80230 {
+				if ! p.npp.request_inidicator_ids(1, mut &p.indicator_id) {
+					p.indicator_id = -1
+				}
+			}
 			p.initialize()
 		}
 		notepadpp.nppn_filesaved {

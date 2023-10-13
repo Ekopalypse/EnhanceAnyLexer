@@ -44,7 +44,9 @@ pub fn read(config_file string) {
 			indicator_id := line_.split('=')
 			if indicator_id.len == 2 {
 				indicator_id_ := indicator_id[1].trim(' ')
-				p.indicator_id = indicator_id_.int()
+				if p.indicator_id == -1 {
+					p.indicator_id = indicator_id_.int()
+				}
 			}
 		}
 		else if line_.starts_with('offset') {

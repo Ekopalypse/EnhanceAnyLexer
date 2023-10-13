@@ -20,7 +20,6 @@ fn (mut p Plugin) style(hwnd voidptr, view int) {
 	p.editor.clear_visible_area(hwnd, p.indicator_id, usize(start_pos), end_pos-start_pos)
 	current_lang := if view == 0 { p.lexers_to_enhance_view0 } else { p.lexers_to_enhance_view1 }
 	for item in current_lang.regexes {
-
 		p.editor.scan_visible_area(
 			hwnd,
 			item,
@@ -92,6 +91,7 @@ pub fn (mut p Plugin) initialize() {
 ; when the buffer of the configured lexer is reactivated.
 [global]
 ; The ID of the indicator used to style the matches.
+; The plugin will try to request an ID from Npp, but if this fails, it will fall back to the ID configured here.
 ; If there are conflicts with indicators used by Npp or other plugins, change this value.
 ; The expected range is between 0 and 35; according to Scinitilla.
 indicator_id=0

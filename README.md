@@ -80,6 +80,8 @@ endif
 
 
 ## Release History
+* 1.3.1
+	* Support for assigning IndicatorIDs through Notepad++ (nppm_allocateindicator).
 * 1.3.0
 	* Support for plugin communication via NPPM_MSGTOPLUGIN. Currently only the use of the "config file saved" message is possible.
 * 1.2.0

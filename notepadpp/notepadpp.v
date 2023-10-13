@@ -11,6 +11,13 @@ pub mut:
 	info            voidptr
 }
 
+pub struct ToolbarIconsWithDarkMode {
+pub mut:
+	htoolbarbmp voidptr
+	htoolbaricon voidptr
+	htoolbaricondarkmode voidptr
+}
+
 pub struct Npp {
 mut:
 	hwnd voidptr
@@ -112,4 +119,8 @@ pub fn (n Npp) get_active_buffer_ids() (isize, isize) {
 
 pub fn (n Npp) check_menu(item usize, checked isize) {
 	n.call(nppm_setmenuitemcheck, item, checked)
+}
+
+pub fn (n Npp) request_inidicator_ids(amount int, mut starting_number &int) bool {
+	return n.call(nppm_allocateindicator, usize(amount), isize(starting_number)) > 0
 }

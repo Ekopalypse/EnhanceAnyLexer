@@ -110,6 +110,146 @@ pub const (
 	nppm_getpluginhomepath = nppmsg + 97
 	nppm_getsettingsoncloudpath = nppmsg + 98
 
+	nppm_setlinenumberwidthmode = nppmsg + 99
+	linenumwidth_dynamic = 0
+	linenumwidth_constant = 1
+	// bool nppm_setlinenumberwidthmode(0, int widthmode)
+	// set line number margin width in dynamic width mode (linenumwidth_dynamic) or constant width mode (linenumwidth_constant)
+	// it may help some plugins to disable non-dynamic line number margins width to have a smoothly visual effect while vertical scrolling the content in notepad++
+	// if calling is successful return true, otherwise return false.
+
+	nppm_getlinenumberwidthmode = nppmsg + 100
+	// int nppm_getlinenumberwidthmode(0, 0)
+	// get line number margin width in dynamic width mode (linenumwidth_dynamic) or constant width mode (linenumwidth_constant)
+
+	nppm_addtoolbaricon_fordarkmode = nppmsg + 101
+	// void nppm_addtoolbaricon_fordarkmode(uint funcitem[x]._cmdid, toolbariconswithdarkmode iconhandles)
+	// use nppm_addtoolbaricon_fordarkmode instead obsolete nppm_addtoolbaricon which doesn't support the dark mode
+	// 2 formats / 3 icons are needed:  1 * bmp + 2 * ico
+	// all 3 handles below should be set so the icon will be displayed correctly if toolbar icon sets are changed by users, also in dark mode
+
+
+	nppm_getexternallexerautoindentmode = nppmsg + 103
+	// bool nppm_getexternallexerautoindentmode(const tchar *languagename, externallexerautoindentmode &autoindentmode)
+	// get externallexerautoindentmode for an installed external programming language.
+	// - standard means notepad++ will keep the same tab indentation between lines;
+	// - c_like means notepad++ will perform a c-language style indentation for the selected external language;
+	// - custom means a plugin will be controlling auto-indentation for the current language.
+	// returned values: true for successful searches, otherwise false.
+
+	nppm_setexternallexerautoindentmode = nppmsg + 104
+	// bool nppm_setexternallexerautoindentmode(const tchar *languagename, externallexerautoindentmode autoindentmode)
+	// set externallexerautoindentmode for an installed external programming language.
+	// - standard means notepad++ will keep the same tab indentation between lines;
+	// - c_like means notepad++ will perform a c-language style indentation for the selected external language;
+	// - custom means a plugin will be controlling auto-indentation for the current language.
+	// returned value: true if function call was successful, otherwise false.
+
+	nppm_isautoindenton = nppmsg + 105
+	// bool nppm_isautoindenton(0, 0)
+	// returns the current use auto-indentation setting in notepad++ preferences.
+
+	nppm_getcurrentmacrostatus = nppmsg + 106
+	// macrostatus nppm_getcurrentmacrostatus(0, 0)
+	// gets current enum class macrostatus { idle - means macro is not in use and it's empty, recordinprogress, recordingstopped, playingback }
+
+	nppm_isdarkmodeenabled = nppmsg + 107
+	// bool nppm_isdarkmodeenabled(0, 0)
+	// returns true when notepad++ dark mode is enable, false when it is not.
+
+	nppm_getdarkmodecolors = nppmsg + 108
+	// bool nppm_getdarkmodecolors (size_t cbsize, nppdarkmode::colors* returncolors)
+	// - cbsize must be filled with sizeof(nppdarkmode::colors).
+	// - returncolors must be a pre-allocated nppdarkmode::colors struct.
+	// returns true when successful, false otherwise.
+	// you need to uncomment the following code to use nppdarkmode::colors structure:
+	//
+	// namespace nppdarkmode
+	// {
+	//	struct colors
+	//	{
+	//		colorref background = 0;
+	//		colorref softerbackground = 0;
+	//		colorref hotbackground = 0;
+	//		colorref purebackground = 0;
+	//		colorref errorbackground = 0;
+	//		colorref text = 0;
+	//		colorref darkertext = 0;
+	//		colorref disabledtext = 0;
+	//		colorref linktext = 0;
+	//		colorref edge = 0;
+	//		colorref hotedge = 0;
+	//		colorref disablededge = 0;
+	//	};
+	// }
+	//
+	// note: in the case of calling failure ("false" is returned), you may need to change nppdarkmode::colors structure to:
+	// https://github.com/notepad-plus-plus/notepad-plus-plus/blob/master/powereditor/src/nppdarkmode.h#l32
+
+	nppm_getcurrentcmdline = nppmsg + 109
+	// int nppm_getcurrentcmdline(size_t strlen, tchar *commandlinestr)
+	// get the current command line string.
+	// returns the number of tchar copied/to copy.
+	// users should call it with commandlinestr as null to get the required number of tchar (not including the terminating nul character),
+	// allocate commandlinestr buffer with the return value + 1, then call it again to get the current command line string.
+
+	nppm_createlexer = nppmsg + 110
+	// void* nppm_createlexer(0, const tchar *lexer_name)
+	// returns the ilexer pointer created by lexilla
+
+	nppm_getbookmarkid = nppmsg + 111
+	// void* nppm_getbookmarkid(0, 0)
+	// returns the bookmark id
+
+	nppm_darkmodesubclassandtheme = nppmsg + 112
+// ULONG NPPM_DARKMODESUBCLASSANDTHEME(ULONG dmFlags, HWND hwnd)
+	// Add support for generic dark mode.
+	//
+	// Docking panels don't need to call NPPM_DARKMODESUBCLASSANDTHEME for main hwnd.
+	// Subclassing is applied automatically unless DWS_USEOWNDARKMODE flag is used.
+	//
+	// Might not work properly in C# plugins.
+	//
+	// Returns succesful combinations of flags.
+	//
+
+	// namespace NppDarkMode
+	// {
+		// // Standard flags for main parent after its children are initialized.
+		// constexpr ULONG dmfInit =               0x0000000BUL;
+
+		// // Standard flags for main parent usually used in NPPN_DARKMODECHANGED.
+		// constexpr ULONG dmfHandleChange =       0x0000000CUL;
+	// };
+
+	// Examples:
+	//
+	// - after controls initializations in WM_INITDIALOG, in WM_CREATE or after CreateWindow:
+	//
+	//auto success = static_cast<ULONG>(::SendMessage(nppData._nppHandle, NPPM_DARKMODESUBCLASSANDTHEME, static_cast<WPARAM>(NppDarkMode::dmfInit), reinterpret_cast<LPARAM>(mainHwnd)));
+	//
+	// - handling dark mode change:
+	//
+	//extern "C" __declspec(dllexport) void beNotified(SCNotification * notifyCode)
+	//{
+	//	switch (notifyCode->nmhdr.code)
+	//	{
+	//		case NPPN_DARKMODECHANGED:
+	//		{
+	//			::SendMessage(nppData._nppHandle, NPPM_DARKMODESUBCLASSANDTHEME, static_cast<WPARAM>(dmfHandleChange), reinterpret_cast<LPARAM>(mainHwnd));
+	//			::SetWindowPos(mainHwnd, nullptr, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED); // to redraw titlebar and window
+	//			break;
+	//		}
+	//	}
+	//}
+
+	nppm_allocateindicator = nppmsg + 113
+	// BOOL NPPM_ALLOCATEINDICATOR(int numberRequested, int* startNumber)
+	// sets startNumber to the initial indicator ID if successful
+	// Allocates an indicator number to a plugin: if a plugin needs to add an indicator,
+	// it has to use this message to get the indicator number, in order to prevent a conflict with the other plugins.
+	// Returns: TRUE if successful, FALSE otherwise
+
 	var_not_recognized = 0
 	full_current_path = 1
 	current_directory = 2

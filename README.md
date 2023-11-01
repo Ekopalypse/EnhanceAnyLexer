@@ -80,6 +80,8 @@ endif
 
 
 ## Release History
+* 1.4.0
+	* Adding an option that enables the use of the RGB color format.
 * 1.3.1
 	* Support for assigning IndicatorIDs through Notepad++ (nppm_allocateindicator).
 * 1.3.0

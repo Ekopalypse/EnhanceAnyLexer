@@ -104,6 +104,7 @@ pub fn (e Editor) clear_regex_test(hwnd voidptr, indicator_id int) {
 	length := e.call(hwnd, sci_getlength, 0, 0)
 	e.call(hwnd, sci_setindicatorcurrent, usize(indicator_id), isize(0))
 	e.call(hwnd, sci_indicatorclearrange, 0, length)
+	e.call(hwnd, sci_annotationclearall, 0, 0)
 }
 
 fn (e Editor) set_search_target(hwnd voidptr, regex string, start_pos usize, end_pos usize) isize {
@@ -156,7 +157,7 @@ pub fn (e Editor) init_style(hwnd voidptr) {
 	e.call(hwnd, sci_stylesetitalic, usize(e.eol_error_style), 1)
 }
 
-pub fn (e Editor) style_config(hwnd voidptr, indicator_id int) {
+pub fn (e Editor) style_config(hwnd voidptr, indicator_id int, use_rgb_format bool) {
 	mut first_visible_line := e.call(hwnd, sci_getfirstvisibleline, 0, 0)
 	first_visible_line = e.call(hwnd, sci_doclinefromvisible, usize(first_visible_line), 0)
 	lines_on_screen := e.call(hwnd, sci_linesonscreen, usize(0), 0)
@@ -172,8 +173,10 @@ pub fn (e Editor) style_config(hwnd voidptr, indicator_id int) {
 		// get the color text
 		range_pointer := charptr(e.call(hwnd, sci_getrangepointer, usize(found_pos), isize(length)))
 		color_text := unsafe { range_pointer.vstring_with_len(int(length)) }
-		color := color_text.replace('#', '0x').int()
-
+		mut color := color_text.replace('#', '0x').int()
+		if use_rgb_format {
+			color = config.rgb_to_bgr(color)
+		}
 		e.style_it(hwnd, usize(indicator_id), color, usize(found_pos), end-found_pos)
 		found_pos = e.set_search_target(hwnd, e.config_regex, usize(end), usize(end_pos))
 	}
@@ -207,7 +210,7 @@ pub fn (e Editor) goto_known_lexer(hwnd voidptr, search string) {
 	}
 }
 
-pub fn (e Editor) highlight_match(hwnd voidptr, position isize, indicator_id int) {
+pub fn (e Editor) highlight_match(hwnd voidptr, position isize, indicator_id int, use_rgb_format bool) {
 	line := e.call(hwnd, sci_linefromposition, usize(position), 0)
 	start_pos := e.call(hwnd, sci_positionfromline, usize(line), 0)
 
@@ -226,7 +229,12 @@ pub fn (e Editor) highlight_match(hwnd voidptr, position isize, indicator_id int
 	split_pos := text.index('=') or { return }
 	if split_pos > 0 {
 		color_text := text[0..split_pos].trim(' ')
-		color := color_text.replace('#', '0x').int()
+		mut color := color_text.replace('#', '0x').int()
+		if color == 0 {
+			for c in color_text {
+				if c != `0` { return }
+			}
+		}
 		regex := text[split_pos..].trim_left('=').trim_space()
 		if regex.len == 0 { return }
 
@@ -238,9 +246,20 @@ pub fn (e Editor) highlight_match(hwnd voidptr, position isize, indicator_id int
 			e.add_error_annotation(hwnd, other_hwnd, line)
 			return
 		}
+		if use_rgb_format {
+			color = config.rgb_to_bgr(color)
+		}
 		for found_pos > -1 {
 			end := e.call(other_hwnd, sci_gettargetend, usize(0), isize(0))
 			e.style_it(other_hwnd, usize(indicator_id), color, usize(found_pos), end-found_pos)
+			current_style := int(e.call(other_hwnd, sci_getstyleat, usize(found_pos), 0))
+			if current_style > 0 {
+				other_line := e.call(other_hwnd, sci_linefromposition, usize(found_pos), 0)
+				e.call(other_hwnd, sci_annotationsetstyle, usize(other_line), e.eol_error_style)
+				buffer := 'This match is not considered if id ${current_style} is included in the excluded_styles list'
+				e.call(other_hwnd, sci_annotationsettext, usize(other_line), isize(buffer.str))
+				e.call(other_hwnd, sci_annotationsetvisible, annotation_boxed, 0)
+			}
 			found_pos = e.set_search_target(other_hwnd, regex, usize(end), usize(end_pos))
 		}
 	}

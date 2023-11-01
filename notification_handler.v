@@ -62,7 +62,7 @@ fn (mut p Plugin) on_update(sci_hwnd voidptr) {
 	}
 	match true {
 		// keep config file check first since buffer_is_of_interest is true anyway
-		p.buffer_is_config_file { p.editor.style_config(p.active_scintilla_hwnd, p.indicator_id) }
+		p.buffer_is_config_file { p.editor.style_config(p.active_scintilla_hwnd, p.indicator_id, p.lexers_to_enhance.use_rgb_format) }
 		buffer_is_of_interest { p.style(hwnd, view) }
 		else{}
 	}
@@ -70,7 +70,7 @@ fn (mut p Plugin) on_update(sci_hwnd voidptr) {
 
 pub fn (mut p Plugin) on_modified(position isize) {
 	if p.buffer_is_config_file && (! p.npp.is_single_view() ) {
-		p.editor.highlight_match(p.active_scintilla_hwnd, position, p.indicator_id)
+		p.editor.highlight_match(p.active_scintilla_hwnd, position, p.indicator_id, p.lexers_to_enhance.use_rgb_format)
 	}
 }
 
@@ -106,6 +106,9 @@ regex_error_style_id=30
 ; The color used by the style.
 ; For an explanation of how this color can be defined, see the following description of the regexes and their colors.
 regex_error_color=0x756ce0
+; Using the RGB format instead of the default BGR format.
+; The expected values are 0 (BGR) or 1 (RGB)
+use_rgb_format=0
 
 ; Each configured lexer must have a section with its name,
 ; (NOTE: use the menu function "Enhance current language" as it takes care of the correct naming)
@@ -120,6 +123,7 @@ regex_error_color=0x756ce0
 ; * blue goes in the biggest byte (0xFF0000)
 ; * this BGR order might conflict with your expectation of RGB order.
 ; * see Microsoft COLORREF documentation https://docs.microsoft.com/en-us/windows/win32/gdi/colorref
+; If the RGB format is to be used, set the global variable use_rgb_format=1
 
 ; The optional whitelist is expected in the form of [1,3,16 ... ] which correspond to the style IDs of the current lexer.
 ; A whitelist is only useful if an excluded_styles line has been configured

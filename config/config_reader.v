@@ -18,6 +18,7 @@ pub mut:
 pub struct Config {
 pub mut:
 	all map[string]Lexer
+	use_rgb_format bool
 }
 
 pub fn read(config_file string) {
@@ -67,6 +68,15 @@ pub fn read(config_file string) {
 				p.regex_error_color = regex_error_color[1].trim(' ').int()
 			}
 		}
+		else if line_.starts_with('use_rgb_format') {
+			use_rgb_format := line_.split('=')
+			if use_rgb_format.len == 2 {
+				val := use_rgb_format[1].trim(' ').int()
+				if val == 1 {
+					p.lexers_to_enhance.use_rgb_format = true
+				}
+			}
+		}
 		else {
 			if line_.starts_with('excluded_styles') {
 				excludes := line_.split('=')
@@ -102,4 +112,22 @@ pub fn read(config_file string) {
 	if lexer.name != '' {
 		p.lexers_to_enhance.all[lexer.name] = lexer
 	}
+	if p.lexers_to_enhance.use_rgb_format {
+		// convert back to bgr format
+		for _, mut lexer__ in p.lexers_to_enhance.all {
+			for i, mut regex in lexer__.regexes {
+				bgr_color := rgb_to_bgr(regex.color)
+				regex.color = bgr_color
+				lexer__.regexes[i] = regex
+			}
+		}
+	}
+}
+
+pub fn rgb_to_bgr(rgb int) int {
+	red := (rgb >> 16) & 0xFF
+	green := (rgb >> 8) & 0xFF
+	blue := rgb & 0xFF
+	bgr := (blue << 16) | (green << 8) | red
+	return bgr
 }

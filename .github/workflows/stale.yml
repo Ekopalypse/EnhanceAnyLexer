@@ -1,18 +1,17 @@
-name: Close Invalid Issues and PRs
-
+name: Close inactive issues
 on:
   schedule:
-    - cron: "0 0 * * *"  # Runs daily at midnight UTC
+    - cron: "30 6 * * *"
 
 jobs:
-  stale:
+  close-issues:
     runs-on: ubuntu-latest
+    permissions:
+      issues: write
     steps:
       - uses: actions/stale@v9
         with:
-          days-before-stale: 28  # 4 weeks before marking as stale
-          days-before-close: 0   # Close immediately after being marked stale
-          stale-issue-label: "invalid"
-          stale-pr-label: "invalid"
-          close-issue-message: "This issue has been automatically closed because it was marked as invalid and received no response in 4 weeks."
-          close-pr-message: "This pull request has been automatically closed because it was marked as invalid and received no response in 4 weeks."
+          days-before-issue-stale: 28
+          days-before-issue-close: 0
+          only-labels: "invalid"
+          close-issue-message: "This issue has been automatically closed because it was marked as invalid and received no response in 28 days."

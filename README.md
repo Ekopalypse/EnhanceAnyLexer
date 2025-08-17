@@ -80,6 +80,8 @@ endif
 
 
 ## Release History
+* 1.4.1
+	* Fixes the issue where cloned views generate update notifications for each other.
 * 1.4.0
 	* Adding an option that enables the use of the RGB color format.
 * 1.3.1

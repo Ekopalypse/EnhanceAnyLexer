@@ -7,7 +7,7 @@ fn C.IsWindowVisible(hWnd voidptr) bool
 pub struct CommunicationInfo {
 pub mut:
 	internal_msg    int
-	src_module_name &u16 = &u16(0)
+	src_module_name &u16 = voidptr(0)
 	info            voidptr
 }
 
@@ -19,17 +19,17 @@ pub mut:
 }
 
 pub struct Npp {
-mut:
+pub mut:
 	hwnd voidptr
 	splitter_hwnd voidptr
 }
 
-[inline]
+@[inline]
 fn (n Npp) call(msg int, wparam usize, lparam isize) isize {
 	return C.SendMessageW(n.hwnd, msg, wparam, lparam)
 }
 
-[inline]
+@[inline]
 fn alloc_wide(size int) &u8 { return vcalloc((size) * 2 ) }
 
 pub fn (mut n Npp) init() {

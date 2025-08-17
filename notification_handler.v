@@ -3,82 +3,90 @@ module npp_plugin
 import os
 import config
 
-fn (mut p Plugin) check_lexer() {
-	view0_id, view1_id := p.npp.get_active_buffer_ids()
-	lang_name0 := p.npp.get_language_name(usize(view0_id))
-	lang_name1 := p.npp.get_language_name(usize(view1_id))
-	p.view0_is_of_interest = lang_name0 in p.lexers_to_enhance.all
-	p.view1_is_of_interest = lang_name1 in p.lexers_to_enhance.all
-	p.lexers_to_enhance_view0 =  p.lexers_to_enhance.all[lang_name0]
-	p.lexers_to_enhance_view1 =  p.lexers_to_enhance.all[lang_name1]
+fn (mut plug Plugin) check_lexer() {
+	view0_id, view1_id := plug.npp.get_active_buffer_ids()
+	plug.same_document_in_both_views = view0_id == view1_id
+	lang_name0 := plug.npp.get_language_name(usize(view0_id))
+	lang_name1 := plug.npp.get_language_name(usize(view1_id))
+	plug.view0_is_of_interest = lang_name0 in plug.lexers_to_enhance.all
+	plug.view1_is_of_interest = lang_name1 in plug.lexers_to_enhance.all
+	plug.lexers_to_enhance_view0 =  plug.lexers_to_enhance.all[lang_name0]
+	plug.lexers_to_enhance_view1 =  plug.lexers_to_enhance.all[lang_name1]
 }
 
 
-fn (mut p Plugin) style(hwnd voidptr, view int) {
-	start_pos, end_pos := p.editor.get_visible_area_positions(hwnd, isize(p.offset))
+fn (mut plug Plugin) style(hwnd voidptr, view int) {
+	start_pos, end_pos := plug.editor.get_visible_area_positions(hwnd, isize(plug.offset))
 	if start_pos == end_pos || end_pos < start_pos { return }
-	p.editor.clear_visible_area(hwnd, p.indicator_id, usize(start_pos), end_pos-start_pos)
-	current_lang := if view == 0 { p.lexers_to_enhance_view0 } else { p.lexers_to_enhance_view1 }
+	plug.editor.clear_visible_area(hwnd, plug.indicator_id, usize(start_pos), end_pos-start_pos)
+	current_lang := if view == 0 { plug.lexers_to_enhance_view0 } else { plug.lexers_to_enhance_view1 }
 	for item in current_lang.regexes {
-		p.editor.scan_visible_area(
+		plug.editor.scan_visible_area(
 			hwnd,
 			item,
 			current_lang.excluded_styles,
-			p.indicator_id,
+			plug.indicator_id,
 			usize(start_pos),
 			usize(end_pos))
 	}
 }
 
-pub fn (mut p Plugin) on_config_file_saved() {
-	p.initialize()
+pub fn (mut plug Plugin) on_config_file_saved() {
+	plug.initialize()
 }
 
-pub fn (mut p Plugin) on_buffer_activated(buffer_id usize) {
-	if p.npp.get_buffer_filename(buffer_id) == p.config_file {
-		p.editor.init_style(p.active_scintilla_hwnd)
-		p.buffer_is_config_file = true
+pub fn (mut plug Plugin) on_buffer_activated(buffer_id usize) {
+	if plug.npp.get_buffer_filename(buffer_id) == plug.config_file {
+		plug.editor.init_style(plug.active_scintilla_hwnd)
+		plug.buffer_is_config_file = true
 	} else {
-		p.editor.clear_regex_test(p.active_scintilla_hwnd, p.indicator_id)
-		p.buffer_is_config_file = false
-		p.check_lexer()
+		plug.editor.clear_regex_test(plug.active_scintilla_hwnd, plug.indicator_id)
+		plug.buffer_is_config_file = false
+		plug.check_lexer()
 	}
 }
 
-pub fn (mut p Plugin) on_language_changed(buffer_id usize) {
-	p.check_lexer()
+pub fn (mut plug Plugin) on_language_changed(buffer_id usize) {
+	plug.check_lexer()
 }
 
-fn (mut p Plugin) on_update(sci_hwnd voidptr) {
-	mut hwnd := p.editor.main_hwnd
+fn (mut plug Plugin) on_update(sci_hwnd voidptr, update_reason isize) {
+	mut hwnd := plug.editor.main_hwnd
 	mut buffer_is_of_interest := false
 	mut view := 0
-	if sci_hwnd == p.npp_data.scintilla_main_handle {
-		buffer_is_of_interest = p.view0_is_of_interest
+	if sci_hwnd == plug.npp_data.scintilla_main_handle {
+		buffer_is_of_interest = plug.view0_is_of_interest
 	} else {
 		view = 1
-		hwnd = p.editor.other_hwnd
-		buffer_is_of_interest = p.view1_is_of_interest
+		hwnd = plug.editor.other_hwnd
+		buffer_is_of_interest = plug.view1_is_of_interest
 	}
+
+	if (plug.npp.get_current_view() != view)	// this is a notification for the incative view
+		&& plug.same_document_in_both_views		// which is a clone from the active view
+		&& ((update_reason & 0x1) != 0) {		// and either the contents, styling or markers may have been changed
+		return									// then we return - which means, scrolling the inactive view should still work.
+	}
+
 	match true {
 		// keep config file check first since buffer_is_of_interest is true anyway
-		p.buffer_is_config_file { p.editor.style_config(p.active_scintilla_hwnd, p.indicator_id, p.lexers_to_enhance.use_rgb_format) }
-		buffer_is_of_interest { p.style(hwnd, view) }
+		plug.buffer_is_config_file { plug.editor.style_config(plug.active_scintilla_hwnd, plug.indicator_id, plug.lexers_to_enhance.use_rgb_format) }
+		buffer_is_of_interest { plug.style(hwnd, view) }
 		else{}
 	}
 }
 
-pub fn (mut p Plugin) on_modified(position isize) {
-	if p.buffer_is_config_file && (! p.npp.is_single_view() ) {
-		p.editor.highlight_match(p.active_scintilla_hwnd, position, p.indicator_id, p.lexers_to_enhance.use_rgb_format)
+pub fn (mut plug Plugin) on_modified(position isize) {
+	if plug.buffer_is_config_file && (! plug.npp.is_single_view() ) {
+		plug.editor.highlight_match(plug.active_scintilla_hwnd, position, plug.indicator_id, plug.lexers_to_enhance.use_rgb_format)
 	}
 }
 
-pub fn (mut p Plugin) initialize() {
-	if ! os.exists(p.config_file) {
-		mut f := os.create(p.config_file) or {
-			err_msg := 'Unable to create ${p.config_file}\n${winapi_lasterr_str()}'
-			C.MessageBoxW(p.npp_data.npp_handle, err_msg.to_wide(), 'ERROR'.to_wide(), 0)
+pub fn (mut plug Plugin) initialize() {
+	if ! os.exists(plug.config_file) {
+		mut f := os.create(plug.config_file) or {
+			err_msg := 'Unable to create ${plug.config_file}\n${winapi_lasterr_str()}'
+			C.MessageBoxW(plug.npp_data.npp_handle, err_msg.to_wide(), 'ERROR'.to_wide(), 0)
 			return
 		}
 		defer { f.close() }
@@ -160,13 +168,13 @@ use_rgb_format=0
 
 		) or { return }
 	} else {
-		config.read(p.config_file)
+		config.read(plug.config_file)
 	}
-	p.editor.eol_error_style = p.regex_error_style_id
-	p.editor.error_msg_color = p.regex_error_color
-	p.editor.init_indicator(p.editor.main_hwnd, usize(p.indicator_id))
-	p.editor.init_indicator(p.editor.other_hwnd, usize(p.indicator_id))
+	plug.editor.eol_error_style = plug.regex_error_style_id
+	plug.editor.error_msg_color = plug.regex_error_color
+	plug.editor.init_indicator(plug.editor.main_hwnd, usize(plug.indicator_id))
+	plug.editor.init_indicator(plug.editor.other_hwnd, usize(plug.indicator_id))
 
 	// create and send a fake nppn_bufferactivated event to the plugin
-	p.on_buffer_activated(usize(p.npp.get_current_buffer_id()))
+	plug.on_buffer_activated(usize(plug.npp.get_current_buffer_id()))
 }

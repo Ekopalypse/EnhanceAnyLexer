@@ -61,7 +61,7 @@ pub mut:
 	error_msg_color int
 }
 
-[inline]
+@[inline]
 fn (e Editor) call(hwnd voidptr, msg int, wparam usize, lparam isize) isize{
 	match hwnd {
 		e.main_hwnd { return e.main_func(hwnd, u32(msg), wparam, lparam) }

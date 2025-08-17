@@ -125,9 +125,10 @@ pub fn read(config_file string) {
 }
 
 pub fn rgb_to_bgr(rgb int) int {
-	red := (rgb >> 16) & 0xFF
-	green := (rgb >> 8) & 0xFF
-	blue := rgb & 0xFF
+	rgb__ := u32(rgb)
+	red := (rgb__ >> 16) & 0xFF
+	green := (rgb__ >> 8) & 0xFF
+	blue := rgb__ & 0xFF
 	bgr := (blue << 16) | (green << 8) | red
-	return bgr
+	return int(bgr)
 }

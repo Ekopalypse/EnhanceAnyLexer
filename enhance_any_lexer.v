@@ -12,12 +12,11 @@ fn C._vcleanup()
 fn C.GC_INIT()
 fn C.MessageBoxW(voidptr, &u16, &u16, u32)
 
-const (
-	plugin_name = unsafe { cstring_to_vstring(voidptr(C.VER_PRODUCTNAME_STR)) }
-	config_file = '${plugin_name}Config.ini'
-	disable_plugin_flag_file = "${plugin_name}_disabled"
-	config_file_saved = 1
-)
+const plugin_name = unsafe { cstring_to_vstring(voidptr(C.VER_PRODUCTNAME_STR)) }
+const config_file = '${plugin_name}Config.ini'
+const disable_plugin_flag_file = "${plugin_name}_disabled"
+const config_file_saved = 1
+
 
 __global ( p Plugin )
 
@@ -59,26 +58,27 @@ pub mut:
 	regex_error_color int = 0x756ce0
 	plugin_config_dir string
 	plugin_enabled bool = true
+	same_document_in_both_views bool
 }
 
 
-[export: isUnicode]
+@[export: isUnicode]
 fn is_unicode() bool {
 	return true
 }
 
 
-[export: getName]
+@[export: getName]
 fn get_name() &u16 {
 	return plugin_name.to_wide()
 }
 
-[export: setInfo]
+@[export: setInfo]
 fn set_info(nppData NppData) {
 	p.npp_data = nppData
-	e1_func := sci.SCI_FN_DIRECT(C.SendMessageW(p.npp_data.scintilla_main_handle, sci.sci_getdirectfunction, 0, 0))
+	e1_func := sci.SCI_FN_DIRECT(voidptr(C.SendMessageW(p.npp_data.scintilla_main_handle, sci.sci_getdirectfunction, 0, 0)))
 	e1_hwnd := C.SendMessageW(p.npp_data.scintilla_main_handle, sci.sci_getdirectpointer, 0, 0)
-	e2_func := sci.SCI_FN_DIRECT(C.SendMessageW(p.npp_data.scintilla_second_handle, sci.sci_getdirectfunction, 0, 0))
+	e2_func := sci.SCI_FN_DIRECT(voidptr(C.SendMessageW(p.npp_data.scintilla_second_handle, sci.sci_getdirectfunction, 0, 0)))
 	e2_hwnd := C.SendMessageW(p.npp_data.scintilla_second_handle, sci.sci_getdirectpointer, 0, 0)
 
 	p.npp = notepadpp.Npp{hwnd: p.npp_data.npp_handle}
@@ -86,14 +86,14 @@ fn set_info(nppData NppData) {
 
 	p.editor = sci.Editor {
 		main_func: e1_func
-		main_hwnd: e1_hwnd
+		main_hwnd: voidptr(e1_hwnd)
 		other_func: e2_func
-		other_hwnd: e2_hwnd
+		other_hwnd: voidptr(e2_hwnd)
 	}
 }
 
 
-[export: beNotified]
+@[export: beNotified]
 fn be_notified(notification &sci.SCNotification) {
 	if !(notification.nmhdr.hwnd_from == p.npp_data.npp_handle ||
 		 notification.nmhdr.hwnd_from == p.npp_data.scintilla_main_handle ||
@@ -152,7 +152,7 @@ fn be_notified(notification &sci.SCNotification) {
 		}
 		sci.scn_updateui {
 			if ! p.plugin_enabled { return }
-			p.on_update(notification.nmhdr.hwnd_from)
+			p.on_update(notification.nmhdr.hwnd_from, notification.updated)
 		}
 		sci.scn_modified {
 			if ! p.plugin_enabled { return }
@@ -163,17 +163,17 @@ fn be_notified(notification &sci.SCNotification) {
 		}
 		sci.scn_marginclick {
 			if ! p.plugin_enabled { return }
-			p.on_update(notification.nmhdr.hwnd_from)
+			p.on_update(notification.nmhdr.hwnd_from, -1)
 		}
 		else {}
 	}
 }
 
 
-[export: messageProc]
+@[export: messageProc]
 fn message_proc(msg u32, wparam usize, lparam isize) isize {
 	if msg == notepadpp.nppm_msgtoplugin {
-		ci := &notepadpp.CommunicationInfo(lparam)
+		ci := unsafe { &notepadpp.CommunicationInfo(voidptr(lparam)) }
 		if ci.internal_msg == config_file_saved {
 			p.on_config_file_saved()
 		}
@@ -183,7 +183,7 @@ fn message_proc(msg u32, wparam usize, lparam isize) isize {
 }
 
 
-[export: getFuncsArray]
+@[export: getFuncsArray]
 fn get_funcs_array(mut nb_func &int) &FuncItem {
 	menu_functions := {
 		'Enhance current language': create_for_current_language
@@ -277,24 +277,4 @@ pub fn about(){
 \tLicensed under MIT
 '
 	C.MessageBoxW(p.npp_data.npp_handle, text.to_wide(), title.to_wide(), 0)
-}
-
-
-[callconv: stdcall]
-[export: DllMain]
-fn current(hinst voidptr, fdw_reason int, lp_reserved voidptr) bool{
-	match fdw_reason {
-		C.DLL_PROCESS_ATTACH {
-			$if static_boehm ? {
-				C.GC_INIT()
-			}
-			C._vinit(0, 0)
-		}
-		C.DLL_THREAD_ATTACH {
-		}
-		C.DLL_THREAD_DETACH {}
-		C.DLL_PROCESS_DETACH {}
-		else { return false }
-	}
-	return true
 }

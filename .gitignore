@@ -6,13 +6,14 @@ EnhanceAnyLexer
 *.so
 *.dylib
 *.dll
+*.obj
 /TEMPDIR
 /tests
 /*.lib
 /*.exp
-/build_git_releases.bat
 /releases
 /EnhanceAnyLexer.res
 /enhance_any_lexer.o
 /enhance_any_lexer.res
-/build_test.bat
+*.bat
+/.editorconfig
